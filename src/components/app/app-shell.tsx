@@ -19,15 +19,15 @@ const nav = [
 ] as const;
 
 export function AppShell({ title, subtitle, children }: { title: string; subtitle?: string; children: ReactNode }) {
-  const { user, isLoading, signOut } = useAuth();
+  const { user, signOut } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    if (!isLoading && !user) router.replace("/auth");
-  }, [isLoading, user, router]);
+    if (!user) router.replace("/auth");
+  }, [user, router]);
 
-  if (isLoading || !user) {
+  if (!user) {
     return (
       <div className="grid min-h-screen place-items-center bg-background">
         <EnFormaLoader text="Loading your coach..." />
