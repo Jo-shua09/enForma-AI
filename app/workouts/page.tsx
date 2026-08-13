@@ -5,16 +5,11 @@ import { Check, Play } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/app/app-shell";
 
-const metadata = {
-  title: "Workouts & adaptive plans - EnForma AI",
+export const metadata = {
+  title: "Workouts & adaptive plans",
   description: "Your adaptive weekly training split with AI progression suggestions.",
   openGraph: {
-    title: "Workouts - EnForma AI",
     description: "Adaptive weekly training split, AI progression.",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
   },
 };
 

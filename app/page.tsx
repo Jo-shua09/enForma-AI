@@ -8,17 +8,13 @@ import { WorkoutPlanner } from "@/components/landing/workout-planner";
 import { HowItWorks, LogoMarquee } from "@/components/landing/how-it-works";
 import { Faq, FinalCta, Footer, Pricing, Testimonials } from "@/components/landing/sections";
 
-const metadata: Metadata = {
+export const metadata: Metadata = {
   title: "EnForma AI - AI Fitness Coach for Meals, Training & Form",
   description:
     "EnForma AI scans meal photos for macros, generates adaptive workout plans, grades your lifting form through your camera and keeps daily habits on streak.",
   openGraph: {
     title: "EnForma AI - Your body, decoded by AI",
     description: "AI meal scanning, adaptive training plans, camera-based form analysis and habit streaks in one calm dark-mode coach.",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
   },
 };
 
