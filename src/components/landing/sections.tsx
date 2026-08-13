@@ -317,13 +317,8 @@ export function Footer() {
       <div className="mx-auto max-w-7xl px-6 py-12">
         <div className="grid gap-10 md:grid-cols-[1.4fr_repeat(4,1fr)]">
           <div>
-            <Link href="/" className="flex items-center gap-2.5">
-              <span className="grid h-8 w-8 place-items-center rounded-lg border border-border bg-surface-2">
-                <Image src="/logo.png" alt="EnForma AI Logo" width={32} height={32} className="h-full w-full object-contain p-1" />
-              </span>
-              <span className="font-display text-lg font-semibold tracking-tight text-foreground">
-                EnForma<span className="text-cyan"> AI</span>
-              </span>
+            <Link href="/" className="">
+              <Image src="/logo.png" alt="EnForma AI Logo" width={32} height={32} className="w-[5rem] object-contain p-1" />
             </Link>
             <p className="mt-3 max-w-xs text-sm text-muted-foreground">
               An AI coach for nutrition, training and technique. Built for people who want the data without the noise.
