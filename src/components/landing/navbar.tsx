@@ -2,11 +2,12 @@
 
 import { useEffect, useState } from "react";
 import { AnimatePresence, motion } from "framer-motion";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { LayoutDashboard, Zap } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
+import { cn } from "@/lib/utils";
 
 const links = [
   { label: "Features", to: "/features" },
@@ -72,13 +73,8 @@ export function Navbar() {
         )}
       >
         <div className="flex items-center justify-between gap-6">
-          <Link href="/" className="flex items-center gap-2.5">
-            <span className="grid h-8 w-8 place-items-center rounded-lg border border-border bg-surface-2">
-              <Zap className="h-4 w-4 text-accent" />
-            </span>
-            <span className="font-display text-lg font-semibold tracking-tight">
-              EnForma<span className="text-cyan"> AI</span>
-            </span>
+          <Link href="/" className="">
+            <Image src="/logo.png" alt="EnForma AI Logo" width={104} height={104} className="h-full w-full object-contain p-1" />
           </Link>
 
           <div className="hidden items-center gap-1 lg:flex">

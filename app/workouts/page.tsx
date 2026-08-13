@@ -1,25 +1,20 @@
-import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
 import { Check, Play } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/app/app-shell";
 
-export const Route = createFileRoute("/workouts")({
-  head: () => ({
-    meta: [
-      { title: "Workouts & adaptive plans - EnForma AI" },
-      {
-        name: "description",
-        content: "Your adaptive weekly training split with AI progression suggestions.",
-      },
-      { property: "og:title", content: "Workouts - EnForma AI" },
-      { property: "og:description", content: "Adaptive weekly training split, AI progression." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
-  component: WorkoutsPage,
-});
+const metadata = {
+  title: "Workouts & adaptive plans - EnForma AI",
+  description: "Your adaptive weekly training split with AI progression suggestions.",
+  openGraph: {
+    title: "Workouts - EnForma AI",
+    description: "Adaptive weekly training split, AI progression.",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+  },
+};
 
 const week = [
   { day: "Mon", name: "Push A", focus: "Chest · Shoulders · Triceps", mins: 52, done: true },
@@ -39,7 +34,7 @@ const session = [
   { ex: "Standing calf raise", sets: "4 × 15", load: "70 kg", note: "Pause at bottom" },
 ];
 
-function WorkoutsPage() {
+export default function WorkoutsPage() {
   const [done, setDone] = useState<string[]>([]);
 
   return (
