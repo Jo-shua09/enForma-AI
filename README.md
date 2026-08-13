@@ -1,8 +1,54 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+<div align="center">
+  <h1 align="center">EnForma AI</h1>
+  <p align="center">
+    <strong>Train with precision.</strong>
+  </p>
+  <p align="center">
+    The all-in-one AI fitness coach that scans your meals, writes your training plan, and grades your lifting form through your camera. One calm, intelligent coach instead of five noisy apps.
+  </p>
+</div>
+
+---
+
+## ✨ Key Features
+
+- **🤖 AI Form Coach**: Get real-time feedback on your lifting form. Our AI analyzes your movements frame-by-frame to score depth, knee tracking, torso angle, and tempo, helping you lift safely and effectively.
+- **🥗 Meal Scanning**: Instantly scan your meals to track macros and calories with high accuracy.
+- **🏋️ Personalized Training Plans**: Receive training plans tailored to your goals and progress.
+- **📈 Habit Tracking**: Stay consistent and keep every habit on streak with intelligent reminders and tracking.
+- **Seamless UI/UX**: A beautiful and intuitive interface with smooth animations and transitions, built for a modern web experience.
+
+---
+
+## 🛠️ Tech Stack
+
+- **Framework**: Next.js (App Router)
+- **Language**: TypeScript
+- **Styling**: Tailwind CSS
+- **Animations**: Framer Motion
+- **Icons**: Lucide React
+- **Deployment**: Vercel
+
+---
 
 ## Getting Started
 
-First, run the development server:
+Follow these steps to set up and run the project locally.
+
+### Prerequisites
+
+Make sure you have Node.js (version 18.x or higher) and a package manager (npm, yarn, pnpm, or bun) installed on your system.
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/your-username/enforma.git
+cd enforma
+```
+
+### 2. Install dependencies
+
+Install the project dependencies using your preferred package manager:
 
 ```bash
 npm run dev
