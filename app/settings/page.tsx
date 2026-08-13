@@ -1,25 +1,26 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
+"use client";
+
 import { toast } from "sonner";
 import { AppShell } from "@/components/app/app-shell";
 import { useAuth } from "@/lib/auth";
+import { useRouter } from "next/navigation";
 
-export const Route = createFileRoute("/settings")({
-  head: () => ({
-    meta: [
-      { title: "Settings - EnForma AI" },
-      { name: "description", content: "Manage your EnForma AI profile, goals and preferences." },
-      { property: "og:title", content: "Settings - EnForma AI" },
-      { property: "og:description", content: "Profile, goals and app preferences." },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
-  component: SettingsPage,
-});
+const metadata = {
+  title: "Settings - EnForma AI",
+  description: "Manage your EnForma AI profile, goals and preferences.",
+  openGraph: {
+    title: "Settings - EnForma AI",
+    description: "Profile, goals and app preferences.",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+  },
+};
 
-function SettingsPage() {
+export default function SettingsPage() {
   const { user, signOut } = useAuth();
-  const navigate = useNavigate();
+  const router = useRouter();
 
   return (
     <AppShell title="Settings" subtitle="Demo account - nothing is stored on a server">
@@ -43,7 +44,7 @@ function SettingsPage() {
           <button
             onClick={() => {
               signOut();
-              navigate({ to: "/", replace: true });
+              router.push("/");
             }}
             className="mt-6 rounded-xl border border-border bg-surface-2 px-4 py-2 text-xs"
           >
