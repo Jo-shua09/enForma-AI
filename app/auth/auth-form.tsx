@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Loader2, Lock, Mail, User, Zap } from "lucide-react";
+import Image from "next/image";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 
@@ -52,16 +53,13 @@ export function AuthForm() {
         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         className="relative z-10 w-full max-w-lg rounded-3xl border border-border bg-surface/60 p-8 backdrop-blur"
       >
-        <div className="mt-6 flex items-center gap-2.5">
-          <span className="grid h-9 w-9 place-items-center rounded-lg border border-border bg-surface-2">
-            <Zap className="h-4 w-4 text-accent" />
-          </span>
-          <span className="font-display text-xl font-semibold tracking-tight">
-            EnForma<span className="text-cyan"> AI</span>
-          </span>
-        </div>
+        <Link href="/" className="">
+          <Image src="/logo.png" alt="EnForma AI Logo" width={124} height={124} className="object-contain p-1" />
+        </Link>
 
-        <h1 className="mt-6 font-display text-3xl font-semibold tracking-tight">{mode === "signin" ? "Welcome back." : "Create your account."}</h1>
+        <h1 className="mt-6 font-display text-2xl md:text-3xl font-semibold tracking-tight">
+          {mode === "signin" ? "Welcome back." : "Create your account."}
+        </h1>
         <div className="mt-6 inline-flex w-full rounded-xl border border-border bg-surface-2/60 p-1">
           {(
             [
@@ -73,7 +71,7 @@ export function AuthForm() {
               key={o.k}
               type="button"
               onClick={() => setMode(o.k)}
-              className={`flex-1 rounded-lg px-4 py-2 text-sm transition-colors ${
+              className={`flex-1 rounded-lg px-2 md:px-4 py-2 text-sm transition-colors ${
                 mode === o.k ? "bg-background text-foreground" : "text-muted-foreground"
               }`}
             >
@@ -82,7 +80,7 @@ export function AuthForm() {
           ))}
         </div>
 
-        <form onSubmit={onSubmit} className="mt-6 space-y-4">
+        <form onSubmit={onSubmit} className="mt-6 space-y-3">
           {mode === "signup" ? (
             <Field icon={<User className="h-4 w-4" />} label="Full name" value={name} onChange={setName} type="text" placeholder="Alex Carter" />
           ) : null}
@@ -135,7 +133,7 @@ function Field({
   return (
     <label className="block">
       <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">{label}</span>
-      <span className="mt-2 flex items-center gap-3 rounded-xl border border-border bg-background/60 px-4 py-3 focus-within:border-cyan/50">
+      <span className="mt-1 flex items-center gap-3 rounded-xl border border-border bg-background/60 px-4 py-3 focus-within:border-cyan/50">
         <span className="text-muted-foreground">{icon}</span>
         <input
           value={value}

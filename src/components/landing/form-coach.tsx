@@ -52,7 +52,7 @@ export function FormCoach() {
               style={{ boxShadow: "0 0 60px -18px color-mix(in oklab, var(--cyan) 55%, transparent)" }}
             >
               <video
-                className="aspect-video h-full w-full object-cover"
+                className="aspect-[1/1]  md:aspect-video h-full w-full object-cover"
                 autoPlay
                 loop
                 muted

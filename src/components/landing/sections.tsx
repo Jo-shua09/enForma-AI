@@ -178,7 +178,7 @@ export function Pricing() {
         </div>
       </Reveal>
 
-      <div className="mt-12 grid gap-5 lg:grid-cols-3">
+      <div className="mt-12 grid gap-y-8 gap-x-5 lg:grid-cols-3">
         {tiers.map((t, i) => (
           <Reveal key={t.name} delay={i * 0.07}>
             <div
@@ -299,7 +299,7 @@ export function Footer() {
       l: [
         ["FAQ", "/faq"],
         ["Dashboard", "/dashboard"],
-        ["Settings", "/settings"], // Assuming settings is a separate page
+        ["Settings", "/settings"], 
       ],
     },
     {
@@ -318,7 +318,7 @@ export function Footer() {
         <div className="grid gap-10 md:grid-cols-[1.4fr_repeat(4,1fr)]">
           <div>
             <Link href="/" className="">
-              <Image src="/logo.png" alt="EnForma AI Logo" width={32} height={32} className="w-[5rem] object-contain p-1" />
+              <Image src="/logo.png" alt="EnForma AI Logo" width={132} height={132} className=" object-contain p-1" />
             </Link>
             <p className="mt-3 max-w-xs text-sm text-muted-foreground">
               An AI coach for nutrition, training and technique. Built for people who want the data without the noise.

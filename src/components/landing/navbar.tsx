@@ -68,7 +68,7 @@ export function Navbar() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         className={cn(
-          "w-full max-w-6xl rounded-2xl border border-transparent px-4 py-3 transition-all duration-300",
+          "w-full max-w-7xl rounded-2xl border border-transparent px-4 py-3 transition-all duration-300",
           scrolled || open ? "glass border-border shadow-2xl" : "bg-transparent",
         )}
       >

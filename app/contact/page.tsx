@@ -88,7 +88,7 @@ export default function ContactPage() {
             </div>
             <div className="rounded-2xl border border-border bg-surface/40 p-6">
               <MapPin className="h-4 w-4 text-accent" />
-              <p className="mt-3 text-sm">Remote-first · EU & US</p>
+              <p className="mt-3 text-sm">Remote-first · Global Reach</p>
               <p className="text-xs text-muted-foreground">Mon–Fri, 09:00–18:00 CET</p>
             </div>
           </div>
