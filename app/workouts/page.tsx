@@ -5,7 +5,7 @@ import { Check, Play } from "lucide-react";
 import { toast } from "sonner";
 import { AppShell } from "@/components/app/app-shell";
 
-export const metadata = {
+const metadata = {
   title: "Workouts & adaptive plans",
   description: "Your adaptive weekly training split with AI progression suggestions.",
   openGraph: {

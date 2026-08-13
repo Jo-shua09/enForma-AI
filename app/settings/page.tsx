@@ -5,7 +5,7 @@ import { AppShell } from "@/components/app/app-shell";
 import { useAuth } from "@/lib/auth";
 import { useRouter } from "next/navigation";
 
-export const metadata = {
+const metadata = {
   title: "Settings",
   description: "Manage your EnForma AI profile, goals and preferences.",
   openGraph: {
