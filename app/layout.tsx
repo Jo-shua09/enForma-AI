@@ -1,8 +1,7 @@
 import type { Metadata } from "next";
 import { Bricolage_Grotesque, Inter, JetBrains_Mono } from "next/font/google";
 import { Toaster } from "sonner";
-import "./globals.css"; // Assuming you have a global stylesheet
-
+import "./globals.css";
 import { AuthProvider } from "@/lib/auth";
 
 const fontSans = Inter({
