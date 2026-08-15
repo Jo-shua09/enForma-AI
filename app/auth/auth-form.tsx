@@ -8,18 +8,23 @@ import { ArrowLeft, Loader2, Lock, Mail, User, Zap } from "lucide-react";
 import Image from "next/image";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
+import { PricingStep } from "./pricing-step";
 
 export function AuthForm() {
   const { user, ready, signIn, signUp } = useAuth();
   const router = useRouter();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
+  const [step, setStep] = useState<"details" | "pricing">("details");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (ready && user) router.replace("/dashboard");
+    // Redirect to dashboard if user is logged in, but not if they are in the middle of signing up.
+    if (ready && user && step === "details") {
+      router.replace("/dashboard");
+    }
   }, [ready, user, router]);
 
   async function onSubmit(e: React.FormEvent) {
@@ -30,14 +35,23 @@ export function AuthForm() {
     }
     setBusy(true);
     try {
-      if (mode === "signin") await signIn(email, password);
-      else await signUp(name, email, password);
-      toast.success(mode === "signin" ? "Welcome back." : "Account created.");
-      router.replace("/dashboard");
+      if (mode === "signin") {
+        await signIn(email, password);
+        toast.success("Welcome back.");
+        router.replace("/dashboard");
+      } else {
+        await signUp(name, email, password);
+        toast.success("Account created. Please select a plan.");
+        setStep("pricing");
+      }
     } finally {
       setBusy(false);
     }
   }
+
+  const handlePlanSelected = (plan: string) => {
+    router.replace("/dashboard");
+  };
 
   return (
     <main className="relative grid min-h-screen place-items-center overflow-hidden bg-background px-6 py-20">
@@ -47,70 +61,76 @@ export function AuthForm() {
         style={{ background: "var(--gradient-accent)" }}
       />
 
+    {step === "details" ? (
       <motion.div
         initial={{ opacity: 0, y: 24 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
         className="relative z-10 w-full max-w-lg rounded-3xl border border-border bg-surface/60 p-8 backdrop-blur"
       >
-        <Link href="/" className="">
-          <Image src="/logo.png" alt="EnForma AI Logo" width={124} height={124} className="object-contain p-1" />
-        </Link>
+          <>
+            <Link href="/" className="">
+              <Image src="/logo.png" alt="EnForma AI Logo" width={124} height={124} className="object-contain p-1" />
+            </Link>
 
-        <h1 className="mt-6 font-display text-2xl md:text-3xl font-semibold tracking-tight">
-          {mode === "signin" ? "Welcome back." : "Create your account."}
-        </h1>
-        <div className="mt-6 inline-flex w-full rounded-xl border border-border bg-surface-2/60 p-1">
-          {(
-            [
-              { k: "signin", l: "Sign in" },
-              { k: "signup", l: "Create account" },
-            ] as const
-          ).map((o) => (
-            <button
-              key={o.k}
-              type="button"
-              onClick={() => setMode(o.k)}
-              className={`flex-1 rounded-lg px-2 md:px-4 py-2 text-sm transition-colors ${
-                mode === o.k ? "bg-background text-foreground" : "text-muted-foreground"
-              }`}
-            >
-              {o.l}
-            </button>
-          ))}
-        </div>
+            <h1 className="mt-6 font-display text-2xl md:text-3xl font-semibold tracking-tight">
+              {mode === "signin" ? "Welcome back." : "Create your account."}
+            </h1>
+            <div className="mt-6 inline-flex w-full rounded-xl border border-border bg-surface-2/60 p-1">
+              {(
+                [
+                  { k: "signin", l: "Sign in" },
+                  { k: "signup", l: "Create account" },
+                ] as const
+              ).map((o) => (
+                <button
+                  key={o.k}
+                  type="button"
+                  onClick={() => setMode(o.k)}
+                  className={`flex-1 rounded-lg px-2 md:px-4 py-2 text-sm transition-colors ${
+                    mode === o.k ? "bg-background text-foreground" : "text-muted-foreground"
+                  }`}
+                >
+                  {o.l}
+                </button>
+              ))}
+            </div>
 
-        <form onSubmit={onSubmit} className="mt-6 space-y-3">
-          {mode === "signup" ? (
-            <Field icon={<User className="h-4 w-4" />} label="Full name" value={name} onChange={setName} type="text" placeholder="Alex Carter" />
-          ) : null}
-          <Field icon={<Mail className="h-4 w-4" />} label="Email" value={email} onChange={setEmail} type="email" placeholder="you@enforma.ai" />
-          <Field
-            icon={<Lock className="h-4 w-4" />}
-            label="Password"
-            value={password}
-            onChange={setPassword}
-            type="password"
-            placeholder="••••••••"
-          />
+            <form onSubmit={onSubmit} className="mt-6 space-y-3">
+              {mode === "signup" ? (
+                <Field icon={<User className="h-4 w-4" />} label="Full name" value={name} onChange={setName} type="text" placeholder="Alex Carter" />
+              ) : null}
+              <Field icon={<Mail className="h-4 w-4" />} label="Email" value={email} onChange={setEmail} type="email" placeholder="you@enforma.ai" />
+              <Field
+                icon={<Lock className="h-4 w-4" />}
+                label="Password"
+                value={password}
+                onChange={setPassword}
+                type="password"
+                placeholder="••••••••"
+              />
 
-          <button
-            type="submit"
-            disabled={busy}
-            className="inline-flex w-full items-center mt-6 justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition-transform hover:scale-[1.01] disabled:opacity-60"
-          >
-            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-            {mode === "signin" ? "Sign in" : "Create account"}
-          </button>
-        </form>
+              <button
+                type="submit"
+                disabled={busy}
+                className="inline-flex w-full items-center mt-6 justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition-transform hover:scale-[1.01] disabled:opacity-60"
+              >
+                {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
+                {mode === "signin" ? "Sign in" : "Create account"}
+              </button>
+            </form>
 
-        <p className="mt-6 text-center text-xs text-muted-foreground">
-          {mode === "signin" ? "New to EnForma AI?" : "Already have an account?"}{" "}
-          <button type="button" onClick={() => setMode(mode === "signin" ? "signup" : "signin")} className="text-cyan hover:underline">
-            {mode === "signin" ? "Create an account" : "Sign in"}
-          </button>
-        </p>
+            <p className="mt-6 text-center text-xs text-muted-foreground">
+              {mode === "signin" ? "New to EnForma AI?" : "Already have an account?"}{" "}
+              <button type="button" onClick={() => setMode(mode === "signin" ? "signup" : "signin")} className="text-cyan hover:underline">
+                {mode === "signin" ? "Create an account" : "Sign in"}
+              </button>
+            </p>
+          </>
       </motion.div>
+        ) : (
+          <PricingStep onPlanSelect={handlePlanSelected} />
+        )}
     </main>
   );
 }
