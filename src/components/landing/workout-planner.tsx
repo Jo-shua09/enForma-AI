@@ -33,6 +33,7 @@ export function WorkoutPlanner() {
   return (
     <Section id="workouts">
       <SectionHeading
+        align="left"
         label="AI workout planner"
         title={
           <>

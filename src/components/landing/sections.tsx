@@ -150,6 +150,7 @@ export function Pricing() {
   return (
     <Section id="pricing">
       <SectionHeading
+        align="left"
         label="Pricing"
         title={
           <>
@@ -159,8 +160,8 @@ export function Pricing() {
         description="Cancel any time. Every paid plan includes a 14-day trial with the full feature set."
       />
 
-      <Reveal delay={0.06} className="mt-8 flex justify-center">
-        <div className="inline-flex items-center gap-1 rounded-full border border-border bg-surface/60 p-1">
+      <Reveal delay={0.06} className="mt-8 flex">
+        <div className="inline-flex items-center  gap-1 rounded-full border border-border bg-surface/60 p-1">
           {[
             { k: false, l: "Monthly" },
             { k: true, l: "Yearly · save 20%" },
@@ -299,7 +300,7 @@ export function Footer() {
       l: [
         ["FAQ", "/faq"],
         ["Dashboard", "/dashboard"],
-        ["Settings", "/settings"], 
+        ["Settings", "/settings"],
       ],
     },
     {

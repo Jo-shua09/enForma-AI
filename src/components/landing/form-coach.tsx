@@ -24,6 +24,7 @@ export function FormCoach() {
   return (
     <Section id="form-coach">
       <SectionHeading
+        align="left"
         label="AI form analysis"
         title={
           <>
