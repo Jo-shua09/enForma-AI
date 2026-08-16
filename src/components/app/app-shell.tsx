@@ -78,11 +78,11 @@ export function AppShell({ title, subtitle, children }: { title: string; subtitl
             </div>
             <div className="flex items-center gap-3">
               <span className="hidden text-right text-xs text-muted-foreground sm:block">
-                <span className="block text-sm font-medium text-foreground capitalize">{user.full_name}</span>
-                <span className="capitalize">{user.current_plan ?? "No Plan"}</span>
+                <span className="block text-sm font-medium text-foreground capitalize">{user?.full_name || "Athlete"}</span>
+                <span className="capitalize">{user?.current_plan || "No Plan"}</span>
               </span>
               <span className="grid h-9 w-9 place-items-center rounded-full border border-cyan/40 bg-surface-2 font-mono text-xs uppercase text-cyan">
-                {user.full_name?.substring(0, 2)}
+                {user?.full_name?.substring(0, 2) || "U"}
               </span>
             </div>
           </div>
@@ -101,6 +101,7 @@ export function AppShell({ title, subtitle, children }: { title: string; subtitl
             ))}
           </div>
         </header>
+
         <main className="px-6 py-8">{children}</main>
       </div>
     </div>

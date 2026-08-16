@@ -12,7 +12,6 @@ import { PricingStep } from "./pricing-step";
 import { updatePlanAction } from "@/actions/auth";
 
 export function AuthForm() {
-  // Add refreshUser to the destructuring here
   const { user, ready, signIn, signUp, refreshUser } = useAuth();
   const router = useRouter();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
@@ -24,7 +23,7 @@ export function AuthForm() {
 
   useEffect(() => {
     if (ready && user && user.current_plan !== "pending" && step === "details") {
-      router.replace("/dashboard");
+      router.push("/dashboard");
     }
   }, [ready, user, step, router]);
 
@@ -40,8 +39,6 @@ export function AuthForm() {
       if (mode === "signin") {
         await signIn(email, password);
         toast.success("Welcome back.");
-
-        // REPLACED window.location.href with soft navigation
         router.push("/dashboard");
       } else {
         await signUp(name, email, password);
@@ -62,11 +59,8 @@ export function AuthForm() {
     if (res.success) {
       toast.success(`Welcome to the ${planName} plan!`, { id: toastId });
 
-      // 1. Fetch the new plan into state and LocalStorage BEFORE moving
       await refreshUser();
-
-      // 2. Soft navigate to the dashboard (prevents the screen flash and cookie loss)
-      window.location.assign("/dashboard");
+      router.push("/dashboard");
     } else {
       toast.error(res.error || "Failed to update plan. Please try again.", { id: toastId });
     }

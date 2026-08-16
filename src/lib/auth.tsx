@@ -14,7 +14,6 @@ export type UserProfile = {
 type AuthContextValue = {
   user: UserProfile | null;
   ready: boolean;
-  isRefreshing: boolean;
   signIn: (email: string, password: string) => Promise<void>;
   signUp: (name: string, email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
@@ -23,16 +22,13 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-// The key used to save the user state locally
 const STORAGE_KEY = "enforma_auth_cache";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [supabase] = useState(() => createClient());
   const [user, setUser] = useState<UserProfile | null>(null);
   const [ready, setReady] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(true);
 
-  // 1. Immediately load the cached user on mount to prevent the UI from kicking you out
   useEffect(() => {
     try {
       const cached = window.localStorage.getItem(STORAGE_KEY);
@@ -42,25 +38,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
-  // 2. Helper function to update React state AND LocalStorage simultaneously
-  const persistUser = useCallback(
-    (profile: UserProfile | null) => {
-      setUser(profile);
-      try {
-        if (profile) {
-          window.localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
-        } else {
-          window.localStorage.removeItem(STORAGE_KEY);
-        }
-      } catch {
-        // Ignore storage errors
+  const persistUser = useCallback((profile: UserProfile | null) => {
+    setUser(profile);
+    try {
+      if (profile) {
+        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
+      } else {
+        window.localStorage.removeItem(STORAGE_KEY);
       }
-    },
-    [setUser],
-  );
+    } catch {
+      // Ignore storage errors
+    }
+  }, []);
 
   const refreshUser = useCallback(async () => {
-    setIsRefreshing(true);
     try {
       const {
         data: { session },
@@ -72,63 +63,45 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      const { data: profile } = await supabase.from("profiles").select("full_name, current_plan").eq("id", session.user.id).single();
+      // CRITICAL FIX: Use maybeSingle() instead of single()
+      // This prevents the 406 Error and stops the app from logging you out
+      // if the database takes an extra millisecond to create your profile.
+      const { data: profile } = await supabase.from("profiles").select("full_name, current_plan").eq("id", session.user.id).maybeSingle();
 
-      // Save securely to state AND local storage
       persistUser({
         id: session.user.id,
         email: session.user.email!,
-        full_name: profile?.full_name || session.user.user_metadata?.full_name,
+        full_name: profile?.full_name || session.user.user_metadata?.full_name || "Athlete",
         current_plan: profile?.current_plan || "pending",
       });
     } catch (error) {
       console.error("Failed to refresh user:", error);
-      persistUser(null);
     } finally {
       setReady(true);
-      setIsRefreshing(false);
     }
-  }, [supabase, persistUser, setIsRefreshing, setReady]);
+  }, [supabase, persistUser]);
 
   useEffect(() => {
-    // Run once on mount to check for an initial session
     refreshUser();
 
+    // CRITICAL FIX: Added 'session' parameter and removed token loop triggers
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_OUT") {
+      if (event === "SIGNED_OUT" || !session) {
         persistUser(null);
-      } else if (session) {
-        // A session has been established.
-        // We can now fetch the profile and update the user state.
-        supabase
-          .from("profiles")
-          .select("full_name, current_plan")
-          .eq("id", session.user.id)
-          .single()
-          .then(({ data: profile }) => {
-            persistUser({
-              id: session.user.id,
-              email: session.user.email!,
-              full_name: profile?.full_name || session.user.user_metadata?.full_name,
-              current_plan: profile?.current_plan || "pending",
-            });
-          });
-      } else if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+      } else if (event === "SIGNED_IN") {
         refreshUser();
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [supabase, persistUser, refreshUser]);
   }, [refreshUser, supabase.auth, persistUser]);
 
   const value = useMemo<AuthContextValue>(
     () => ({
       user,
       ready,
-      isRefreshing,
       refreshUser,
       signIn: async (email, password) => {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -149,7 +122,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         persistUser(null);
       },
     }),
-    [user, ready, isRefreshing, refreshUser, supabase.auth, persistUser],
+    [user, ready, refreshUser, supabase.auth, persistUser],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
