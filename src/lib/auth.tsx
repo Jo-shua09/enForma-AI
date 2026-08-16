@@ -91,18 +91,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [supabase, persistUser, setIsRefreshing, setReady]);
 
   useEffect(() => {
+    // Run once on mount to check for an initial session
+    refreshUser();
+
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
       if (event === "SIGNED_OUT") {
         persistUser(null);
       } else if (session) {
+        // A session has been established.
+        // We can now fetch the profile and update the user state.
+        supabase
+          .from("profiles")
+          .select("full_name, current_plan")
+          .eq("id", session.user.id)
+          .single()
+          .then(({ data: profile }) => {
+            persistUser({
+              id: session.user.id,
+              email: session.user.email!,
+              full_name: profile?.full_name || session.user.user_metadata?.full_name,
+              current_plan: profile?.current_plan || "pending",
+            });
+          });
+      } else if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
         refreshUser();
       }
     });
 
     return () => subscription.unsubscribe();
-  }, [refreshUser, supabase.auth]);
+  }, [supabase, persistUser, refreshUser]);
+  }, [refreshUser, supabase.auth, persistUser]);
 
   const value = useMemo<AuthContextValue>(
     () => ({
