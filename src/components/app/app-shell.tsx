@@ -20,13 +20,13 @@ const nav = [
 ] as const;
 
 export function AppShell({ title, subtitle, children }: { title: string; subtitle?: string; children: ReactNode }) {
-  const { user, ready, signOut } = useAuth();
+  const { user, ready, signOut, isRefreshing } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
 
   useEffect(() => {
-    if (ready && !user) router.replace("/");
-  }, [user, ready, router]);
+    if (ready && !user && !isRefreshing) router.replace("/");
+  }, [user, ready, router, isRefreshing]);
 
   if (!user || !ready) {
     return (

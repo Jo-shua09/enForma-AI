@@ -1,5 +1,6 @@
 "use server";
 
+import { revalidatePath } from "next/cache";
 import { createClient } from "@/utils/supabase/server";
 
 export async function signInAction(email: string, password: string) {
@@ -18,7 +19,7 @@ export async function signInAction(email: string, password: string) {
 export async function signUpAction(name: string, email: string, password: string) {
   const supabase = await createClient();
 
-  const { error } = await supabase.auth.signUp({
+  const { data, error } = await supabase.auth.signUp({
     email,
     password,
     options: {
@@ -30,6 +31,10 @@ export async function signUpAction(name: string, email: string, password: string
 
   if (error) {
     return { success: false, error: error.message };
+  }
+
+  if (data.session) {
+    // This is required to set the session cookie
   }
 
   return { success: true };
@@ -50,5 +55,6 @@ export async function updatePlanAction(planName: string) {
   if (error) {
     return { success: false, error: error.message };
   }
+  revalidatePath("/dashboard");
   return { success: true };
 }

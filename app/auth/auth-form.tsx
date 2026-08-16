@@ -9,10 +9,11 @@ import Image from "next/image";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { PricingStep } from "./pricing-step";
-import { signInAction, signUpAction, updatePlanAction } from "@/actions/auth";
+import { updatePlanAction } from "@/actions/auth";
 
 export function AuthForm() {
-  const { user, ready, signIn } = useAuth();
+  // Add refreshUser to the destructuring here
+  const { user, ready, signIn, signUp, refreshUser } = useAuth();
   const router = useRouter();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [step, setStep] = useState<"details" | "pricing">("details");
@@ -22,8 +23,7 @@ export function AuthForm() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    // Only auto-redirect if they are logging in, NOT if they are signing up and need to pick a plan
-    if (ready && user && step === "details") {
+    if (ready && user && user.current_plan !== "pending" && step === "details") {
       router.replace("/dashboard");
     }
   }, [ready, user, step, router]);
@@ -38,23 +38,18 @@ export function AuthForm() {
 
     try {
       if (mode === "signin") {
-        const res = await signInAction(email, password);
-        if (res.success) {
-          toast.success("Welcome back.");
-          window.location.href = "/dashboard";
-        } else {
-          toast.error(res.error);
-        }
+        await signIn(email, password);
+        toast.success("Welcome back.");
+
+        // REPLACED window.location.href with soft navigation
+        router.push("/dashboard");
       } else {
-        const res = await signUpAction(name, email, password);
-        if (res.success) {
-          toast.success("Account created. Please select a plan.");
-          await signIn(email, password);
-          setStep("pricing");
-        } else {
-          toast.error(res.error);
-        }
+        await signUp(name, email, password);
+        toast.success("Account created. Please select a plan.");
+        setStep("pricing");
       }
+    } catch (error: any) {
+      toast.error(error.message || "Authentication failed. Please try again.");
     } finally {
       setBusy(false);
     }
@@ -67,10 +62,11 @@ export function AuthForm() {
     if (res.success) {
       toast.success(`Welcome to the ${planName} plan!`, { id: toastId });
 
-      // Hard navigation ensures the AppShell context fetches the new plan
-      setTimeout(() => {
-        window.location.href = "/dashboard";
-      }, 400);
+      // 1. Fetch the new plan into state and LocalStorage BEFORE moving
+      await refreshUser();
+
+      // 2. Soft navigate to the dashboard (prevents the screen flash and cookie loss)
+      window.location.assign("/dashboard");
     } else {
       toast.error(res.error || "Failed to update plan. Please try again.", { id: toastId });
     }
