@@ -2,67 +2,102 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
 import type { ReactNode } from "react";
+import { createClient } from "@/utils/supabase/client";
 
-export type DemoUser = { name: string; email: string };
-
-type AuthContextValue = {
-  user: DemoUser | null;
-  ready: boolean;
-  signIn: (email: string, password: string) => Promise<DemoUser>;
-  signUp: (name: string, email: string, password: string) => Promise<DemoUser>;
-  signOut: () => void;
+export type UserProfile = {
+  id: string;
+  email: string;
+  full_name?: string;
+  current_plan?: string;
 };
 
-const STORAGE_KEY = "enforma.demo.user";
+type AuthContextValue = {
+  user: UserProfile | null;
+  ready: boolean;
+  signIn: (email: string, password: string) => Promise<void>;
+  signUp: (name: string, email: string, password: string) => Promise<void>;
+  signOut: () => Promise<void>;
+  refreshUser: () => Promise<void>;
+};
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<DemoUser | null>(null);
+  const [user, setUser] = useState<UserProfile | null>(null);
   const [ready, setReady] = useState(false);
 
-  useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem(STORAGE_KEY);
-      if (raw) setUser(JSON.parse(raw) as DemoUser);
-    } catch {
-      /* ignore */
-    }
-    setReady(true);
-  }, []);
+  // Initialize the Supabase client
+  const supabase = createClient();
 
-  const persist = useCallback((next: DemoUser | null) => {
-    setUser(next);
+  // Fetch the active session and query the public.profiles table
+  const refreshUser = useCallback(async () => {
     try {
-      if (next) window.localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
-      else window.localStorage.removeItem(STORAGE_KEY);
-    } catch {
-      /* ignore */
+      const {
+        data: { session },
+      } = await supabase.auth.getSession();
+
+      if (!session?.user) {
+        setUser(null);
+        setReady(true);
+        return;
+      }
+
+      // Query the database for the user's specific profile data
+      const { data: profile } = await supabase.from("profiles").select("full_name, current_plan").eq("id", session.user.id).single();
+
+      setUser({
+        id: session.user.id,
+        email: session.user.email!,
+        // Check the database profile first, fallback to auth metadata if needed
+        full_name: profile?.full_name || session.user.user_metadata?.full_name,
+        current_plan: profile?.current_plan || "pending",
+      });
+    } catch (error) {
+      console.error("Failed to refresh user:", error);
+      setUser(null);
+    } finally {
+      setReady(true);
     }
-  }, []);
+  }, [supabase]);
+
+  useEffect(() => {
+    refreshUser();
+
+    // Listen for auth state changes (e.g., logging in/out from another tab)
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange(() => {
+      refreshUser();
+    });
+
+    return () => subscription.unsubscribe();
+  }, [refreshUser, supabase.auth]);
 
   const value = useMemo<AuthContextValue>(
     () => ({
       user,
       ready,
-      signIn: async (email) => {
-        await new Promise((r) => setTimeout(r, 700));
-        const next: DemoUser = {
-          name: email.split("@")[0]?.replace(/[._-]/g, " ") || "Athlete",
+      refreshUser,
+      signIn: async (email, password) => {
+        const { error } = await supabase.auth.signInWithPassword({ email, password });
+        if (error) throw error;
+        await refreshUser();
+      },
+      signUp: async (name, email, password) => {
+        const { error } = await supabase.auth.signUp({
           email,
-        };
-        persist(next);
-        return next;
+          password,
+          options: { data: { full_name: name } },
+        });
+        if (error) throw error;
+        await refreshUser();
       },
-      signUp: async (name, email) => {
-        await new Promise((r) => setTimeout(r, 900));
-        const next: DemoUser = { name: name || "Athlete", email };
-        persist(next);
-        return next;
+      signOut: async () => {
+        await supabase.auth.signOut();
+        setUser(null);
       },
-      signOut: () => persist(null),
     }),
-    [user, ready, persist],
+    [user, ready, refreshUser, supabase.auth],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

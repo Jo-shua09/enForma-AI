@@ -1,10 +1,10 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useEffect, useState } from "react";
+import { useEffect } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Activity, Apple, Dumbbell, LayoutDashboard, LogOut, ScanLine, Settings, Zap } from "lucide-react";
+import { Activity, Apple, Dumbbell, LayoutDashboard, LogOut, ScanLine, Settings } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
 import { EnFormaLoader } from "@/components/ui/enforma-loader";
@@ -25,7 +25,7 @@ export function AppShell({ title, subtitle, children }: { title: string; subtitl
   const pathname = usePathname();
 
   useEffect(() => {
-    if (ready && !user) router.replace("/auth");
+    if (ready && !user) router.replace("/");
   }, [user, ready, router]);
 
   if (!user || !ready) {
@@ -40,9 +40,9 @@ export function AppShell({ title, subtitle, children }: { title: string; subtitl
     <div className="min-h-screen bg-background">
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-60 flex-col border-r border-border bg-surface/40 px-4 py-6 lg:flex">
         <Link href="/" className="">
-          <Image src="/logo.png" alt="EnForma AI Logo" width={104} height={104} className="h-full w-full object-contain p-1" />
+          <Image src="/logo.png" alt="EnForma AI Logo" width={134} height={134} className="object-contain p-1" />
         </Link>
-        <nav className="flex flex-1 flex-col gap-1">
+        <nav className="flex flex-1 flex-col gap-1 mt-6">
           {nav.map((n) => (
             <Link
               key={n.to}
@@ -78,11 +78,11 @@ export function AppShell({ title, subtitle, children }: { title: string; subtitl
             </div>
             <div className="flex items-center gap-3">
               <span className="hidden text-right text-xs text-muted-foreground sm:block">
-                <span className="block text-sm font-medium text-foreground">{user.full_name}</span>
+                <span className="block text-sm font-medium text-foreground capitalize">{user.full_name}</span>
                 <span className="capitalize">{user.current_plan ?? "No Plan"}</span>
               </span>
               <span className="grid h-9 w-9 place-items-center rounded-full border border-cyan/40 bg-surface-2 font-mono text-xs uppercase text-cyan">
-                {user.full_name?.slice(0, 2)}
+                {user.full_name?.substring(0, 2)}
               </span>
             </div>
           </div>

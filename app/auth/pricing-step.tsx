@@ -49,14 +49,18 @@ const tiers = [
 export function PricingStep({ onPlanSelect, onBack }: { onPlanSelect: (plan: string) => void; onBack?: () => void }) {
   const [yearly, setYearly] = useState(true);
 
-  const handlePlanSelect = (planName: string) => {
-    // Passes the selection back up to AuthForm which handles the server action
-    onPlanSelect(planName);
-  };
-
   return (
     <div className="max-w-[80rem] w-full">
       <div className="relative">
+        {/* Render a back button if the onBack prop is passed (used in Settings) */}
+        {onBack && (
+          <button
+            onClick={onBack}
+            className="absolute -top-12 left-0 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <ArrowLeft className="h-4 w-4" /> Back to settings
+          </button>
+        )}
         <SectionHeading
           align="left"
           label={onBack ? "Change your plan" : "Choose your plan"}
@@ -66,7 +70,7 @@ export function PricingStep({ onPlanSelect, onBack }: { onPlanSelect: (plan: str
       </div>
 
       <Reveal delay={0.06} className="mt-8 flex">
-        <div className="inline-flex items-center  gap-1 rounded-full border border-border bg-surface/60 p-1">
+        <div className="inline-flex items-center gap-1 rounded-full border border-border bg-surface/60 p-1">
           {[
             { k: false, l: "Monthly" },
             { k: true, l: "Yearly · save 20%" },
@@ -114,7 +118,7 @@ export function PricingStep({ onPlanSelect, onBack }: { onPlanSelect: (plan: str
                 ))}
               </ul>
               <button
-                onClick={() => handlePlanSelect(t.name)}
+                onClick={() => onPlanSelect(t.name)}
                 className={`mt-8 inline-flex items-center justify-center rounded-xl px-5 py-3 text-sm font-medium transition-transform hover:scale-[1.02] ${t.featured ? "bg-primary text-primary-foreground" : "border border-border bg-surface-2 text-foreground"}`}
               >
                 Select Plan

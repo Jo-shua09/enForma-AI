@@ -3,19 +3,10 @@
 import { useState } from "react";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
-import { ArrowLeft } from "lucide-react";
 import { AppShell } from "@/components/app/app-shell";
 import { useAuth } from "@/lib/auth";
 import { updatePlanAction } from "@/actions/auth";
 import { PricingStep } from "@/auth/pricing-step";
-
-const metadata = {
-  title: "Settings",
-  description: "Manage your EnForma AI profile, goals and preferences.",
-  openGraph: {
-    description: "Profile, goals and app preferences.",
-  },
-};
 
 export default function SettingsPage() {
   const { user, signOut, refreshUser } = useAuth();
@@ -27,16 +18,16 @@ export default function SettingsPage() {
     const res = await updatePlanAction(planName.toLowerCase());
 
     if (res.success) {
-      await refreshUser(); // Refresh client-side user data
+      await refreshUser(); // Refreshes client-side context instantly
       toast.success(`Your plan has been updated to ${planName}!`, { id: toastId });
-      setView("details");
+      setView("details"); // Flips back to the settings view showing the new plan
     } else {
       toast.error(res.error || "Failed to update plan. Please try again.", { id: toastId });
     }
   };
 
   return (
-    <AppShell title="Settings" subtitle="Demo account - nothing is stored on a server">
+    <AppShell title="Settings" subtitle="Manage your EnForma AI profile, goals and preferences.">
       {view === "details" ? (
         <div className="grid gap-4 lg:grid-cols-2">
           <div className="rounded-2xl border border-border bg-surface/40 p-6">

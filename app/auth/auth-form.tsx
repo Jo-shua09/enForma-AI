@@ -2,9 +2,9 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { ArrowLeft, Loader2, Lock, Mail, User, Zap } from "lucide-react";
+import { Loader2, Lock, Mail, User } from "lucide-react";
 import Image from "next/image";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
@@ -12,7 +12,7 @@ import { PricingStep } from "./pricing-step";
 import { signInAction, signUpAction, updatePlanAction } from "@/actions/auth";
 
 export function AuthForm() {
-  const { user, ready, signIn, signUp } = useAuth();
+  const { user, ready, signIn } = useAuth();
   const router = useRouter();
   const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [step, setStep] = useState<"details" | "pricing">("details");
@@ -20,21 +20,13 @@ export function AuthForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
-  const [planSelected, setPlanSelected] = useState(false);
 
   useEffect(() => {
-    // Redirect to dashboard if user is logged in, but not if they are in the middle of signing up.
+    // Only auto-redirect if they are logging in, NOT if they are signing up and need to pick a plan
     if (ready && user && step === "details") {
-      router.push("/dashboard");
+      router.replace("/dashboard");
     }
   }, [ready, user, step, router]);
-
-  useEffect(() => {
-    // This effect will run when a plan is selected and the user object becomes available.
-    if (planSelected && user) {
-      router.push("/dashboard");
-    }
-  }, [planSelected, user, router]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -49,7 +41,7 @@ export function AuthForm() {
         const res = await signInAction(email, password);
         if (res.success) {
           toast.success("Welcome back.");
-          router.push("/dashboard");
+          window.location.href = "/dashboard";
         } else {
           toast.error(res.error);
         }
@@ -57,7 +49,7 @@ export function AuthForm() {
         const res = await signUpAction(name, email, password);
         if (res.success) {
           toast.success("Account created. Please select a plan.");
-          await signIn(email, password); // Sign in the user to create a client-side session
+          await signIn(email, password);
           setStep("pricing");
         } else {
           toast.error(res.error);
@@ -74,7 +66,11 @@ export function AuthForm() {
 
     if (res.success) {
       toast.success(`Welcome to the ${planName} plan!`, { id: toastId });
-      setPlanSelected(true);
+
+      // Hard navigation ensures the AppShell context fetches the new plan
+      setTimeout(() => {
+        window.location.href = "/dashboard";
+      }, 400);
     } else {
       toast.error(res.error || "Failed to update plan. Please try again.", { id: toastId });
     }
