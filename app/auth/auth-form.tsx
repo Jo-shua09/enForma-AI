@@ -2,13 +2,14 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { motion } from "framer-motion";
 import { ArrowLeft, Loader2, Lock, Mail, User, Zap } from "lucide-react";
 import Image from "next/image";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
 import { PricingStep } from "./pricing-step";
+import { signInAction, signUpAction, updatePlanAction } from "@/actions/auth";
 
 export function AuthForm() {
   const { user, ready, signIn, signUp } = useAuth();
@@ -19,13 +20,21 @@ export function AuthForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+  const [planSelected, setPlanSelected] = useState(false);
 
   useEffect(() => {
     // Redirect to dashboard if user is logged in, but not if they are in the middle of signing up.
     if (ready && user && step === "details") {
-      router.replace("/dashboard");
+      router.push("/dashboard");
     }
-  }, [ready, user, router]);
+  }, [ready, user, step, router]);
+
+  useEffect(() => {
+    // This effect will run when a plan is selected and the user object becomes available.
+    if (planSelected && user) {
+      router.push("/dashboard");
+    }
+  }, [planSelected, user, router]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -34,23 +43,41 @@ export function AuthForm() {
       return;
     }
     setBusy(true);
+
     try {
       if (mode === "signin") {
-        await signIn(email, password);
-        toast.success("Welcome back.");
-        router.replace("/dashboard");
+        const res = await signInAction(email, password);
+        if (res.success) {
+          toast.success("Welcome back.");
+          router.push("/dashboard");
+        } else {
+          toast.error(res.error);
+        }
       } else {
-        await signUp(name, email, password);
-        toast.success("Account created. Please select a plan.");
-        setStep("pricing");
+        const res = await signUpAction(name, email, password);
+        if (res.success) {
+          toast.success("Account created. Please select a plan.");
+          await signIn(email, password); // Sign in the user to create a client-side session
+          setStep("pricing");
+        } else {
+          toast.error(res.error);
+        }
       }
     } finally {
       setBusy(false);
     }
   }
 
-  const handlePlanSelected = (plan: string) => {
-    router.replace("/dashboard");
+  const handlePlanSelected = async (planName: string) => {
+    const toastId = toast.loading("Updating your plan...");
+    const res = await updatePlanAction(planName.toLowerCase());
+
+    if (res.success) {
+      toast.success(`Welcome to the ${planName} plan!`, { id: toastId });
+      setPlanSelected(true);
+    } else {
+      toast.error(res.error || "Failed to update plan. Please try again.", { id: toastId });
+    }
   };
 
   return (
@@ -61,13 +88,13 @@ export function AuthForm() {
         style={{ background: "var(--gradient-accent)" }}
       />
 
-    {step === "details" ? (
-      <motion.div
-        initial={{ opacity: 0, y: 24 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-        className="relative z-10 w-full max-w-lg rounded-3xl border border-border bg-surface/60 p-8 backdrop-blur"
-      >
+      {step === "details" ? (
+        <motion.div
+          initial={{ opacity: 0, y: 24 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+          className="relative z-10 w-full max-w-lg rounded-3xl border border-border bg-surface/60 p-8 backdrop-blur"
+        >
           <>
             <Link href="/" className="">
               <Image src="/logo.png" alt="EnForma AI Logo" width={124} height={124} className="object-contain p-1" />
@@ -127,10 +154,10 @@ export function AuthForm() {
               </button>
             </p>
           </>
-      </motion.div>
-        ) : (
-          <PricingStep onPlanSelect={handlePlanSelected} />
-        )}
+        </motion.div>
+      ) : (
+        <PricingStep onPlanSelect={handlePlanSelected} />
+      )}
     </main>
   );
 }

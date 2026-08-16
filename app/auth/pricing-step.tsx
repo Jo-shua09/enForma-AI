@@ -1,11 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import Link from "next/link";
-import { Check, Minus } from "lucide-react";
-import { Reveal, Section, SectionHeading } from "@/components/landing/primitives";
-import { useAuth } from "@/lib/auth";
-import { toast } from "sonner";
+import { ArrowLeft, Check, Minus } from "lucide-react";
+import { Reveal, SectionHeading } from "@/components/landing/primitives";
 
 const tiers = [
   {
@@ -49,30 +46,43 @@ const tiers = [
   },
 ];
 
-export function PricingStep({ onPlanSelect }: { onPlanSelect: (plan: string) => void }) {
+export function PricingStep({ onPlanSelect, onBack }: { onPlanSelect: (plan: string) => void; onBack?: () => void }) {
   const [yearly, setYearly] = useState(true);
-  const { user } = useAuth();
 
-  const handlePlanSelect = async (planName: string) => {
-    if (!user) {
-      toast.error("You need to be logged in to select a plan.");
-      return;
-    }
-    // Here you would typically update the user's plan in your backend.
-    // For this example, we'll simulate it and call the callback.
-    console.log(`User ${user.email} selected plan: ${planName}`);
-    toast.success(`You have selected the ${planName} plan.`);
+  const handlePlanSelect = (planName: string) => {
+    // Passes the selection back up to AuthForm which handles the server action
     onPlanSelect(planName);
   };
 
   return (
     <div className="max-w-[80rem] w-full">
-      <SectionHeading
-        align="left"
-        label="Choose your plan"
-        title={<>One last step.</>}
-        description="Select a plan to get started. You can change this at any time."
-      />
+      <div className="relative">
+        <SectionHeading
+          align="left"
+          label={onBack ? "Change your plan" : "Choose your plan"}
+          title={onBack ? <>Find the right fit.</> : <>One last step.</>}
+          description="Select a plan to get started. You can change this at any time."
+        />
+      </div>
+
+      <Reveal delay={0.06} className="mt-8 flex">
+        <div className="inline-flex items-center  gap-1 rounded-full border border-border bg-surface/60 p-1">
+          {[
+            { k: false, l: "Monthly" },
+            { k: true, l: "Yearly · save 20%" },
+          ].map((o) => (
+            <button
+              key={o.l}
+              onClick={() => setYearly(o.k)}
+              className={`rounded-full px-4 py-1.5 text-xs transition-colors ${
+                yearly === o.k ? "bg-surface-2 text-foreground" : "text-muted-foreground"
+              }`}
+            >
+              {o.l}
+            </button>
+          ))}
+        </div>
+      </Reveal>
 
       <div className="mt-12 grid gap-y-8 gap-x-5 lg:grid-cols-3">
         {tiers.map((t, i) => (
