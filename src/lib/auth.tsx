@@ -18,6 +18,7 @@ type AuthContextValue = {
   signUp: (name: string, email: string, password: string) => Promise<void>;
   signOut: () => Promise<void>;
   refreshUser: () => Promise<void>;
+  isRefreshing: boolean;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -28,6 +29,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [supabase] = useState(() => createClient());
   const [user, setUser] = useState<UserProfile | null>(null);
   const [ready, setReady] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(true);
 
   useEffect(() => {
     try {
@@ -52,6 +54,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const refreshUser = useCallback(async () => {
+    setIsRefreshing(true);
     try {
       const {
         data: { session },
@@ -78,6 +81,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       console.error("Failed to refresh user:", error);
     } finally {
       setReady(true);
+      setIsRefreshing(false);
     }
   }, [supabase, persistUser]);
 
@@ -103,6 +107,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       user,
       ready,
       refreshUser,
+      isRefreshing,
       signIn: async (email, password) => {
         const { error } = await supabase.auth.signInWithPassword({ email, password });
         if (error) throw error;
@@ -122,7 +127,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         persistUser(null);
       },
     }),
-    [user, ready, refreshUser, supabase.auth, persistUser],
+    [user, ready, refreshUser, isRefreshing, supabase.auth, persistUser],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
