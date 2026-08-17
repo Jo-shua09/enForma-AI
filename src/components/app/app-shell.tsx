@@ -1,10 +1,11 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
-import { Activity, Apple, Dumbbell, LayoutDashboard, LogOut, ScanLine, Settings } from "lucide-react";
+import { Activity, Apple, Dumbbell, LayoutDashboard, LogOut, Menu, ScanLine, Settings, X } from "lucide-react";
+import { AnimatePresence, motion } from "framer-motion";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/lib/auth";
 import { EnFormaLoader } from "@/components/ui/enforma-loader";
@@ -23,6 +24,7 @@ export function AppShell({ title, subtitle, children }: { title: string; subtitl
   const { user, ready, signOut, isRefreshing } = useAuth();
   const router = useRouter();
   const pathname = usePathname();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   useEffect(() => {
     if (ready && !user && !isRefreshing) router.replace("/");
@@ -37,16 +39,48 @@ export function AppShell({ title, subtitle, children }: { title: string; subtitl
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <aside className="fixed inset-y-0 left-0 z-40 hidden w-60 flex-col border-r border-border bg-surface/40 px-4 py-6 lg:flex">
-        <Link href="/" className="">
-          <Image src="/logo.png" alt="EnForma AI Logo" width={134} height={134} className="object-contain p-1" />
-        </Link>
-        <nav className="flex flex-1 flex-col gap-1 mt-6">
+    <div className="min-h-screen bg-background lg:grid lg:grid-cols-[240px_1fr]">
+      {/* --- Mobile Sidebar Overlay --- */}
+      <AnimatePresence>
+        {sidebarOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+            onClick={() => setSidebarOpen(false)}
+            className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm lg:hidden"
+          />
+        )}
+      </AnimatePresence>
+
+      {/* --- Sidebar --- */}
+      <motion.aside
+        initial={false}
+        animate={sidebarOpen ? "open" : "closed"}
+        variants={{
+          closed: { x: "-100%", transition: { duration: 0.3, ease: "easeInOut" } },
+          open: { x: "0%", transition: { duration: 0.3, ease: "easeInOut" } },
+        }}
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 flex w-60 flex-col border-r border-border bg-surface/80 px-4 py-6 backdrop-blur-lg",
+          "lg:static lg:z-auto lg:translate-x-0 lg:bg-surface/40 lg:backdrop-blur-none",
+        )}
+      >
+        <div className="flex items-center justify-between">
+          <Link href="/" className="shrink-0">
+            <Image src="/logo.png" alt="EnForma AI Logo" width={134} height={134} className="object-contain p-1" />
+          </Link>
+          <button onClick={() => setSidebarOpen(false)} className="lg:hidden">
+            <X className="h-5 w-5" />
+          </button>
+        </div>
+        <nav className="mt-6 flex flex-1 flex-col gap-1">
           {nav.map((n) => (
             <Link
               key={n.to}
               href={n.to}
+              onClick={() => setSidebarOpen(false)}
               className={cn(
                 "flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm transition-colors",
                 pathname === n.to ? "bg-surface-2 text-foreground" : "text-muted-foreground hover:bg-surface-2/60 hover:text-foreground",
@@ -67,38 +101,33 @@ export function AppShell({ title, subtitle, children }: { title: string; subtitl
           <LogOut className="h-4 w-4" />
           Sign out
         </button>
-      </aside>
+      </motion.aside>
 
-      <div className="lg:pl-60">
+      {/* --- Main Content --- */}
+      <div className="flex min-w-0 flex-col">
         <header className="sticky top-0 z-30 border-b border-border bg-background/80 px-6 py-5 backdrop-blur">
           <div className="flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <h1 className="font-display text-2xl font-semibold tracking-tight">{title}</h1>
-              {subtitle ? <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p> : null}
+            <div className="flex items-center gap-4">
+              <button onClick={() => setSidebarOpen(true)} className="lg:hidden">
+                <Menu className="h-5 w-5" />
+                <span className="sr-only">Open menu</span>
+              </button>
+              <div>
+                <h1 className="font-display text-2xl font-semibold tracking-tight">{title}</h1>
+                {subtitle ? <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p> : null}
+              </div>
             </div>
             <div className="flex items-center gap-3">
               <span className="hidden text-right text-xs text-muted-foreground sm:block">
                 <span className="block text-sm font-medium text-foreground capitalize">{user?.full_name || "Athlete"}</span>
                 <span className="capitalize">{user?.current_plan || "No Plan"}</span>
               </span>
-              <span className="grid h-9 w-9 place-items-center rounded-full border border-cyan/40 bg-surface-2 font-mono text-xs uppercase text-cyan">
-                {user?.full_name?.substring(0, 2) || "U"}
-              </span>
-            </div>
-          </div>
-          <div className="mt-4 flex gap-1 overflow-x-auto lg:hidden">
-            {nav.map((n) => (
-              <Link
-                key={n.to}
-                href={n.to}
-                className={cn(
-                  "whitespace-nowrap rounded-lg px-3 py-1.5 text-xs",
-                  pathname === n.to ? "bg-surface-2 text-foreground" : "text-muted-foreground hover:text-foreground",
-                )}
-              >
-                {n.label}
+              <Link href="/settings">
+                <span className="grid h-9 w-9 place-items-center rounded-full border border-cyan/40 bg-surface-2 font-mono text-xs uppercase text-cyan">
+                  {user?.full_name?.substring(0, 2) || "U"}
+                </span>
               </Link>
-            ))}
+            </div>
           </div>
         </header>
 
