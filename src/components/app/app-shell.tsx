@@ -20,6 +20,17 @@ const nav = [
   { to: "/settings", label: "Settings", icon: Settings },
 ] as const;
 
+const sidebarVariants = {
+  open: {
+    x: "0%",
+    transition: { duration: 0.3, ease: "easeInOut" },
+  },
+  closed: {
+    x: ["-100%", "-100%", "0%"], // Keep it off-screen on mobile, but force to 0 on desktop
+    transition: { duration: 0.3, ease: "easeInOut", times: [0, 0.99, 1] },
+  },
+};
+
 export function AppShell({ title, subtitle, children }: { title: string; subtitle?: string; children: ReactNode }) {
   const { user, ready, signOut, isRefreshing } = useAuth();
   const router = useRouter();
@@ -64,7 +75,7 @@ export function AppShell({ title, subtitle, children }: { title: string; subtitl
         }}
         className={cn(
           "fixed inset-y-0 left-0 z-50 flex w-60 flex-col border-r border-border bg-surface/80 px-4 py-6 backdrop-blur-lg",
-          "lg:static lg:z-auto lg:translate-x-0 lg:bg-surface/40 lg:backdrop-blur-none",
+          "lg:static lg:z-auto lg:!translate-x-0 lg:bg-surface/40 lg:backdrop-blur-none",
         )}
       >
         <div className="flex items-center justify-between">

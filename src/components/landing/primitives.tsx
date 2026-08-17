@@ -42,7 +42,7 @@ export function SectionHeading({
     <Reveal className={cn("flex flex-col gap-4", align === "center" ? "items-center text-center" : "items-start text-left")}>
       <SectionLabel>{label}</SectionLabel>
       <h2 className="max-w-3xl font-display text-4xl font-semibold leading-[1.05] tracking-tight text-foreground sm:text-5xl">{title}</h2>
-      {description ? <p className="max-w-2xl text-base leading-relaxed text-muted-foreground">{description}</p> : null}
+      {description ? <p className="max-w-3xl text-base leading-relaxed text-muted-foreground">{description}</p> : null}
     </Reveal>
   );
 }
