@@ -15,7 +15,7 @@ export async function createClient() {
         } catch {
           // This catch block is intentionally empty.
           // It prevents Next.js from throwing errors when attempting to set cookies
-          // from a Server Component (which is read-only). Middleware handles the actual setting.
+          // from a Server Component (which is read-only). proxy handles the actual setting.
         }
       },
     },

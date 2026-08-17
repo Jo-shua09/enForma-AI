@@ -18,9 +18,9 @@ export default function SettingsPage() {
     const res = await updatePlanAction(planName.toLowerCase());
 
     if (res.success) {
-      await refreshUser(); // Refreshes client-side context instantly
+      await refreshUser();
       toast.success(`Your plan has been updated to ${planName}!`, { id: toastId });
-      setView("details"); // Flips back to the settings view showing the new plan
+      setView("details");
     } else {
       toast.error(res.error || "Failed to update plan. Please try again.", { id: toastId });
     }

@@ -52,7 +52,7 @@ export function Navbar() {
   const [open, setOpen] = useState(false);
   const { user, signOut } = useAuth();
   const router = useRouter();
-  const pathname = usePathname(); // Next.js hook to get current path for active links
+  const pathname = usePathname(); 
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 24);
@@ -74,7 +74,7 @@ export function Navbar() {
       >
         <div className="flex items-center justify-between gap-6">
           <Link href="/" className="">
-            <Image src="/logo.png" alt="EnForma AI Logo" width={104} height={104} className="h-full w-full object-contain p-1" />
+            <Image src="/logo.png" alt="EnForma AI Logo" width={132} height={132} className="object-contain p-1" />
           </Link>
 
           <div className="hidden items-center gap-1 lg:flex">

@@ -88,7 +88,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     refreshUser();
 
-    // CRITICAL FIX: Added 'session' parameter and removed token loop triggers
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
