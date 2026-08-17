@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Loader2, Lock, Mail, User } from "lucide-react";
+import { Eye, EyeOff, Loader2, Lock, Mail, User } from "lucide-react";
 import Image from "next/image";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
@@ -163,6 +163,9 @@ function Field({
   type: string;
   placeholder: string;
 }) {
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const isPasswordField = type === "password";
+
   return (
     <label className="block">
       <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">{label}</span>
@@ -171,10 +174,20 @@ function Field({
         <input
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          type={type}
+          type={isPasswordField ? (isPasswordVisible ? "text" : "password") : type}
           placeholder={placeholder}
           className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground/60"
         />
+        {isPasswordField && (
+          <button
+            type="button"
+            onClick={() => setIsPasswordVisible((v) => !v)}
+            className="text-muted-foreground transition-colors hover:text-foreground"
+            aria-label={isPasswordVisible ? "Hide password" : "Show password"}
+          >
+            {isPasswordVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+          </button>
+        )}
       </span>
     </label>
   );
