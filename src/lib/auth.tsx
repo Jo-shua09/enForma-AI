@@ -9,6 +9,10 @@ export type UserProfile = {
   email: string;
   full_name?: string;
   current_plan?: string;
+  daily_calories?: number;
+  protein_target?: number;
+  training_days?: number;
+  water_goal?: number;
 };
 
 type AuthContextValue = {
@@ -40,11 +44,22 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (error || !authUser) {
         setUser(null);
       } else {
+        // Fetch optional goals from profiles table if available
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("full_name, current_plan, daily_calories, protein_target, training_days, water_goal")
+          .eq("id", authUser.id)
+          .maybeSingle();
+
         setUser({
           id: authUser.id,
           email: authUser.email!,
-          full_name: authUser.user_metadata?.full_name || "Athlete",
-          current_plan: authUser.user_metadata?.current_plan || "free",
+          full_name: profile?.full_name || authUser.user_metadata?.full_name || "Athlete",
+          current_plan: profile?.current_plan || authUser.user_metadata?.current_plan || "free",
+          daily_calories: profile?.daily_calories,
+          protein_target: profile?.protein_target,
+          training_days: profile?.training_days,
+          water_goal: profile?.water_goal,
         });
       }
     } catch {
