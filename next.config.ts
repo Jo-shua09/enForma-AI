@@ -1,10 +1,22 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Your Next.js configuration options go here.
-  allowedDevOrigins: ["192.168.0.149"],
-  // The App Router is enabled by default in recent versions of Next.js.
-  // No special configuration is needed in this file to enable it.
+  images: {
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "images.unsplash.com",
+        port: "",
+        pathname: "/**",
+      },
+      {
+        protocol: "https",
+        hostname: "*.supabase.co",
+        port: "",
+        pathname: "/storage/v1/object/public/**",
+      },
+    ],
+  },
 };
 
 export default nextConfig;
