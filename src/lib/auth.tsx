@@ -9,10 +9,6 @@ export type UserProfile = {
   email: string;
   full_name?: string;
   current_plan?: string;
-  daily_calories?: number;
-  protein_target?: number;
-  training_days?: number;
-  water_goal?: number;
 };
 
 type AuthContextValue = {
@@ -27,88 +23,59 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
-const STORAGE_KEY = "enforma_auth_cache";
-
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [supabase] = useState(() => createClient());
   const [user, setUser] = useState<UserProfile | null>(null);
   const [ready, setReady] = useState(false);
-  const [isRefreshing, setIsRefreshing] = useState(true);
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
-  useEffect(() => {
-    try {
-      const cached = window.localStorage.getItem(STORAGE_KEY);
-      if (cached) setUser(JSON.parse(cached));
-    } catch {
-      // Ignore storage errors
-    }
-  }, []);
-
-  const persistUser = useCallback((profile: UserProfile | null) => {
-    setUser(profile);
-    try {
-      if (profile) {
-        window.localStorage.setItem(STORAGE_KEY, JSON.stringify(profile));
-      } else {
-        window.localStorage.removeItem(STORAGE_KEY);
-      }
-    } catch {
-      // Ignore storage errors
-    }
-  }, []);
-
+  // Lightweight check that doesn't hammer Supabase with forced refresh tokens
   const refreshUser = useCallback(async () => {
-    setIsRefreshing(true);
     try {
       const {
-        data: { session },
-      } = await supabase.auth.getSession();
+        data: { user: authUser },
+        error,
+      } = await supabase.auth.getUser();
 
-      if (!session?.user) {
-        persistUser(null);
-        setReady(true);
-        return;
+      if (error || !authUser) {
+        setUser(null);
+      } else {
+        setUser({
+          id: authUser.id,
+          email: authUser.email!,
+          full_name: authUser.user_metadata?.full_name || "Athlete",
+          current_plan: authUser.user_metadata?.current_plan || "free",
+        });
       }
-
-      const { data: profile } = await supabase
-        .from("profiles")
-        .select("full_name, current_plan, daily_calories, protein_target, training_days, water_goal")
-        .eq("id", session.user.id)
-        .maybeSingle();
-
-      persistUser({
-        id: session.user.id,
-        email: session.user.email!,
-        full_name: profile?.full_name || session.user.user_metadata?.full_name || "Athlete",
-        current_plan: profile?.current_plan || "pending",
-        daily_calories: profile?.daily_calories,
-        protein_target: profile?.protein_target,
-        training_days: profile?.training_days,
-        water_goal: profile?.water_goal,
-      });
-    } catch (error) {
-      console.error("Failed to refresh user:", error);
+    } catch {
+      setUser(null);
     } finally {
       setReady(true);
-      setIsRefreshing(false);
     }
-  }, [supabase, persistUser]);
+  }, [supabase]);
 
   useEffect(() => {
     refreshUser();
 
+    // Listen strictly to actual auth state changes (Sign in, Sign out)
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "SIGNED_OUT" || !session) {
-        persistUser(null);
-      } else if (event === "SIGNED_IN") {
-        refreshUser();
+      if (event === "SIGNED_OUT" || !session?.user) {
+        setUser(null);
+      } else if (session?.user) {
+        setUser({
+          id: session.user.id,
+          email: session.user.email!,
+          full_name: session.user.user_metadata?.full_name || "Athlete",
+          current_plan: session.user.user_metadata?.current_plan || "free",
+        });
       }
+      setReady(true);
     });
 
     return () => subscription.unsubscribe();
-  }, [refreshUser, supabase.auth, persistUser]);
+  }, [supabase, refreshUser]);
 
   const value = useMemo<AuthContextValue>(
     () => ({
@@ -132,10 +99,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       },
       signOut: async () => {
         await supabase.auth.signOut();
-        persistUser(null);
+        setUser(null);
       },
     }),
-    [user, ready, refreshUser, isRefreshing, supabase.auth, persistUser],
+    [user, ready, refreshUser, isRefreshing, supabase],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

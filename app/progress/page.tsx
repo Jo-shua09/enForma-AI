@@ -63,7 +63,7 @@ export default function ProgressPage() {
   const weightDiff = (currentWeight - initialWeight).toFixed(1);
 
   return (
-    <AppShell title="Progress & Ecosystem Analytics" subtitle="Unified command center linking meals, workouts, form scores, and body metrics.">
+    <AppShell title="Progress & Ecosystem Analytics" subtitle="Unified analytics for meals, workouts, form, and body metrics.">
       {/* TOP ROW: Ecosystem Summary Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         <div className="rounded-3xl border border-border bg-surface/40 p-5">

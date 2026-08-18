@@ -24,11 +24,11 @@ const siteUrl = "https://enforma-ai.vercel.app/";
 export const metadata: Metadata = {
   metadataBase: new URL(siteUrl),
   title: {
-    default: "Enforma AI - Your Intelligent Information Companion",
+    default: "Enforma AI - AI Fitness Coach for Nutrition, Training, and Form",
     template: `%s | Enforma AI`,
   },
   description:
-    "Enforma AI is a cutting-edge AI assistant designed to provide you with accurate and insightful answers. Experience the future of information access.",
+    "Enforma AI is your all-in-one AI fitness coach. Scan meals for macros, get personalized workout plans, and perfect your form with camera-based analysis.",
 
   // Favicon
   icons: {
@@ -39,13 +39,13 @@ export const metadata: Metadata = {
 
   // Open Graph (for social sharing)
   openGraph: {
-    title: "Enforma AI - Your Intelligent Information Companion",
-    description: "Experience the future of information access with Enforma AI, a cutting-edge AI assistant.",
+    title: "Enforma AI - Your AI Fitness Coach",
+    description: "Scan meals, get personalized workouts, and analyze your form with Enforma AI.",
     url: siteUrl,
     siteName: "Enforma AI",
     images: [
       {
-        url: `${siteUrl}og-image.png`, // Create and add an og-image.png to your public folder
+        url: `${siteUrl}og-image.png`,
         width: 1200,
         height: 630,
       },
@@ -57,9 +57,9 @@ export const metadata: Metadata = {
   // Twitter Card
   twitter: {
     card: "summary_large_image",
-    title: "Enforma AI - Your Intelligent Information Companion",
-    description: "Experience the future of information access with Enforma AI.",
-    images: [`${siteUrl}og-image.png`], // Create and add an og-image.png to your public folder
+    title: "Enforma AI - AI Fitness Coach for Nutrition & Training",
+    description: "Scan meals, get personalized workouts, and analyze your form with Enforma AI.",
+    images: [`${siteUrl}og-image.png`],
   },
 
   robots: {
@@ -70,7 +70,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${fontSans.variable} ${fontDisplay.variable} ${fontMono.variable}`}>
+    <html lang="en" className={`data-scroll-behavior="smooth" ${fontSans.variable} ${fontDisplay.variable} ${fontMono.variable}`}>
       <body>
         <AuthProvider>{children}</AuthProvider>
         <Toaster theme="dark" position="bottom-right" />

@@ -109,8 +109,8 @@ export function AppShell({ title, subtitle, children }: { title: string; subtitl
                 <Menu className="h-6 w-6" />
               </button>
               <div>
-                <h1 className="font-display text-2xl font-semibold tracking-tight">{title}</h1>
-                {subtitle ? <p className="mt-1 text-sm text-muted-foreground">{subtitle}</p> : null}
+                <h1 className="font-display text-xl sm:text-2xl font-semibold tracking-tight">{title}</h1>
+                {subtitle ? <p className="mt-1 text-xs sm:text-sm text-muted-foreground">{subtitle}</p> : null}
               </div>
             </div>
 
