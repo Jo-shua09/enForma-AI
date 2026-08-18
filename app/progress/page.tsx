@@ -37,7 +37,7 @@ export default function ProgressPage() {
     if (!newWeight) return;
 
     setIsSubmitting(true);
-    const toastId = toast.loading("Saving check-in to Supabase...");
+    const toastId = toast.loading("Saving check-in...");
 
     const formData = new FormData();
     formData.append("weight", newWeight);

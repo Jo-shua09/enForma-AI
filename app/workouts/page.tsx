@@ -54,7 +54,7 @@ export default function WorkoutsPage() {
   const handleGenerate = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsGenerating(true);
-    const toastId = toast.loading("Gemini is designing your workout split...");
+    const toastId = toast.loading("EnForma AI is designing your workout split...");
 
     const res = await generateWorkoutAction({ targetMuscle, difficulty, goal });
     setIsGenerating(false);

@@ -37,7 +37,7 @@ export default function FormCoachPage() {
 
   const handleRunAnalysis = async () => {
     setAnalysing(true);
-    const toastId = toast.loading(`Gemini is analyzing your ${exerciseName} biomechanics...`);
+    const toastId = toast.loading(`EnForma AI is analyzing your ${exerciseName} biomechanics...`);
 
     const formData = new FormData();
     if (selectedFile) {
