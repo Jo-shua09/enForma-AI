@@ -52,14 +52,7 @@ export function PricingStep({ onPlanSelect, onBack }: { onPlanSelect: (plan: str
   return (
     <div className="max-w-[80rem] w-full">
       <div className="relative">
-        {/* {onBack && (
-          <button
-            onClick={onBack}
-            className="absolute -top-12 left-0 flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <ArrowLeft className="h-4 w-4" /> Back to settings
-          </button>
-        )} */}
+        
         <SectionHeading
           align="left"
           label={onBack ? "Change your plan" : "Choose your plan"}
