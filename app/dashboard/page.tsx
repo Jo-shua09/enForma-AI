@@ -1,21 +1,14 @@
 import Link from "next/link";
-import { Activity, Apple, Dumbbell, Flame, ScanLine, TrendingUp, Calendar } from "lucide-react";
+import { redirect } from "next/navigation";
+import { Activity, Apple, Dumbbell, Flame, ScanLine, TrendingUp } from "lucide-react";
 import { AppShell } from "@/components/app/app-shell";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import type { Metadata } from "next";
 
-const metadata: Metadata = {
+export const metadata: Metadata = {
   title: "Dashboard - EnForma AI",
   description: "Your daily macros, training readiness and habit streaks.",
-  openGraph: {
-    title: "Dashboard - EnForma AI",
-    description: "Daily macros, readiness and streaks at a glance.",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-  },
 };
 
 async function getSupabase() {
@@ -36,20 +29,20 @@ async function getDashboardData() {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: profile } = await supabase.from("profiles").select("daily_calories, protein_target").eq("id", user?.id).single();
+  if (!user) {
+    redirect("/auth");
+  }
+
+  // Fetch user profile targets AND their current plan
+  const { data: profile } = await supabase.from("profiles").select("daily_calories, protein_target, current_plan").eq("id", user.id).single();
+
+  // 🚀 THE GATEKEEPER: Redirect new accounts to the pricing page
+  if (!profile?.current_plan || profile.current_plan === "pending") {
+    redirect("/pricing");
+  }
 
   const targetCalories = profile?.daily_calories || 2350;
   const targetProtein = profile?.protein_target || 175;
-
-  if (!user) {
-    return {
-      totalCaloriesToday: 0,
-      totalProteinToday: 0,
-      targetCalories,
-      targetProtein,
-      activityFeed: [],
-    };
-  }
 
   const startOfDay = new Date();
   startOfDay.setHours(0, 0, 0, 0);
@@ -128,7 +121,6 @@ const actions = [
 export default async function DashboardPage() {
   const { totalCaloriesToday, totalProteinToday, targetCalories, targetProtein, activityFeed } = await getDashboardData();
 
-  // Format current date cleanly (e.g. "Monday, Aug 17, 2026")
   const currentDateFormatted = new Intl.DateTimeFormat("en-US", {
     weekday: "long",
     month: "short",

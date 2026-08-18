@@ -1,194 +1,98 @@
 "use client";
 
-import Link from "next/link";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
-import { motion } from "framer-motion";
-import { Eye, EyeOff, Loader2, Lock, Mail, User } from "lucide-react";
-import Image from "next/image";
 import { toast } from "sonner";
 import { useAuth } from "@/lib/auth";
-import { PricingStep } from "./pricing-step";
-import { updatePlanAction } from "@/actions/auth";
+import { Loader2 } from "lucide-react";
 
 export function AuthForm() {
-  const { user, ready, signIn, signUp, refreshUser } = useAuth();
-  const router = useRouter();
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
-  const [step, setStep] = useState<"details" | "pricing">("details");
-  const [name, setName] = useState("");
+  const [isSignUp, setIsSignUp] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [busy, setBusy] = useState(false);
+  const [name, setName] = useState("");
+  const [isLoading, setIsLoading] = useState(false);
 
-  useEffect(() => {
-    if (ready && user && user.current_plan !== "pending" && step === "details") {
-      router.push("/dashboard");
-    }
-  }, [ready, user, step, router]);
+  const router = useRouter();
+  const { signIn, signUp } = useAuth();
 
-  async function onSubmit(e: React.FormEvent) {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email || !password || (mode === "signup" && !name)) {
-      toast.error("Please fill in every field.");
-      return;
-    }
-    setBusy(true);
+    setIsLoading(true);
 
     try {
-      if (mode === "signin") {
-        await signIn(email, password);
-        toast.success("Welcome back.");
-        router.push("/dashboard");
-      } else {
+      if (isSignUp) {
         await signUp(name, email, password);
-        toast.success("Account created. Please select a plan.");
-        setStep("pricing");
+        toast.success("Account created! Let's pick a plan.");
+        // 🚀 Push new users to the pricing page
+        router.push("/pricing");
+      } else {
+        await signIn(email, password);
+        toast.success("Welcome back!");
+        // Route returning users to the dashboard
+        router.push("/dashboard");
       }
     } catch (error: any) {
-      toast.error(error.message || "Authentication failed. Please try again.");
+      toast.error(error.message || "Authentication failed");
     } finally {
-      setBusy(false);
-    }
-  }
-
-  const handlePlanSelected = async (planName: string) => {
-    const toastId = toast.loading("Updating your plan...");
-    const res = await updatePlanAction(planName.toLowerCase());
-
-    if (res.success) {
-      toast.success(`Welcome to the ${planName} plan!`, { id: toastId });
-
-      await refreshUser();
-      router.push("/dashboard");
-    } else {
-      toast.error(res.error || "Failed to update plan. Please try again.", { id: toastId });
+      setIsLoading(false);
     }
   };
 
   return (
-    <main className="relative grid min-h-screen place-items-center overflow-hidden bg-background px-6 py-20">
-      <div className="pointer-events-none absolute inset-0 grid-bg opacity-30" />
-      <div
-        className="pointer-events-none absolute left-1/2 top-1/4 h-[420px] w-[680px] -translate-x-1/2 rounded-full opacity-20 blur-[120px]"
-        style={{ background: "var(--gradient-accent)" }}
-      />
-
-      {step === "details" ? (
-        <motion.div
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
-          className="relative z-10 w-full max-w-lg rounded-3xl border border-border bg-surface/60 p-8 backdrop-blur"
-        >
-          <>
-            <Link href="/" className="">
-              <Image src="/logo.png" alt="EnForma AI Logo" width={124} height={124} className="object-contain p-1" />
-            </Link>
-
-            <h1 className="mt-6 font-display text-2xl md:text-3xl font-semibold tracking-tight">
-              {mode === "signin" ? "Welcome back." : "Create your account."}
-            </h1>
-            <div className="mt-6 inline-flex w-full rounded-xl border border-border bg-surface-2/60 p-1">
-              {(
-                [
-                  { k: "signin", l: "Sign in" },
-                  { k: "signup", l: "Create account" },
-                ] as const
-              ).map((o) => (
-                <button
-                  key={o.k}
-                  type="button"
-                  onClick={() => setMode(o.k)}
-                  className={`flex-1 rounded-lg px-2 md:px-4 py-2 text-sm transition-colors ${
-                    mode === o.k ? "bg-background text-foreground" : "text-muted-foreground"
-                  }`}
-                >
-                  {o.l}
-                </button>
-              ))}
-            </div>
-
-            <form onSubmit={onSubmit} className="mt-6 space-y-3">
-              {mode === "signup" ? (
-                <Field icon={<User className="h-4 w-4" />} label="Full name" value={name} onChange={setName} type="text" placeholder="Alex Carter" />
-              ) : null}
-              <Field icon={<Mail className="h-4 w-4" />} label="Email" value={email} onChange={setEmail} type="email" placeholder="you@enforma.ai" />
-              <Field
-                icon={<Lock className="h-4 w-4" />}
-                label="Password"
-                value={password}
-                onChange={setPassword}
-                type="password"
-                placeholder="••••••••"
-              />
-
-              <button
-                type="submit"
-                disabled={busy}
-                className="inline-flex w-full items-center mt-6 justify-center gap-2 rounded-xl bg-primary px-5 py-3 text-sm font-medium text-primary-foreground transition-transform hover:scale-[1.01] disabled:opacity-60"
-              >
-                {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : null}
-                {mode === "signin" ? "Sign in" : "Create account"}
-              </button>
-            </form>
-
-            <p className="mt-6 text-center text-xs text-muted-foreground">
-              {mode === "signin" ? "New to EnForma AI?" : "Already have an account?"}{" "}
-              <button type="button" onClick={() => setMode(mode === "signin" ? "signup" : "signin")} className="text-cyan hover:underline">
-                {mode === "signin" ? "Create an account" : "Sign in"}
-              </button>
-            </p>
-          </>
-        </motion.div>
-      ) : (
-        <PricingStep onPlanSelect={handlePlanSelected} />
+    <form onSubmit={handleSubmit} className="space-y-4">
+      {isSignUp && (
+        <div>
+          <label className="mb-1 block text-xs text-muted-foreground">Full Name</label>
+          <input
+            type="text"
+            required
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            className="w-full rounded-xl border border-border bg-surface/50 px-4 py-3 text-sm text-foreground outline-none transition-colors focus:border-cyan/50 focus:bg-background"
+            placeholder="John Doe"
+          />
+        </div>
       )}
-    </main>
-  );
-}
 
-function Field({
-  icon,
-  label,
-  value,
-  onChange,
-  type,
-  placeholder,
-}: {
-  icon: React.ReactNode;
-  label: string;
-  value: string;
-  onChange: (v: string) => void;
-  type: string;
-  placeholder: string;
-}) {
-  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
-  const isPasswordField = type === "password";
-
-  return (
-    <label className="block">
-      <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">{label}</span>
-      <span className="mt-1 flex items-center gap-3 rounded-xl border border-border bg-background/60 px-4 py-3 focus-within:border-cyan/50">
-        <span className="text-muted-foreground">{icon}</span>
+      <div>
+        <label className="mb-1 block text-xs text-muted-foreground">Email</label>
         <input
-          value={value}
-          onChange={(e) => onChange(e.target.value)}
-          type={isPasswordField ? (isPasswordVisible ? "text" : "password") : type}
-          placeholder={placeholder}
-          className="w-full bg-transparent text-sm text-foreground outline-none placeholder:text-muted-foreground/60"
+          type="email"
+          required
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+          className="w-full rounded-xl border border-border bg-surface/50 px-4 py-3 text-sm text-foreground outline-none transition-colors focus:border-cyan/50 focus:bg-background"
+          placeholder="you@example.com"
         />
-        {isPasswordField && (
-          <button
-            type="button"
-            onClick={() => setIsPasswordVisible((v) => !v)}
-            className="text-muted-foreground transition-colors hover:text-foreground"
-            aria-label={isPasswordVisible ? "Hide password" : "Show password"}
-          >
-            {isPasswordVisible ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-          </button>
-        )}
-      </span>
-    </label>
+      </div>
+
+      <div>
+        <label className="mb-1 block text-xs text-muted-foreground">Password</label>
+        <input
+          type="password"
+          required
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+          className="w-full rounded-xl border border-border bg-surface/50 px-4 py-3 text-sm text-foreground outline-none transition-colors focus:border-cyan/50 focus:bg-background"
+          placeholder="••••••••"
+        />
+      </div>
+
+      <button
+        type="submit"
+        disabled={isLoading}
+        className="mt-6 flex w-full items-center justify-center gap-2 rounded-xl bg-primary px-4 py-3 text-sm font-medium text-primary-foreground transition-transform hover:scale-[1.02] disabled:opacity-50 disabled:hover:scale-100"
+      >
+        {isLoading && <Loader2 className="h-4 w-4 animate-spin" />}
+        {isSignUp ? "Create Account" : "Sign In"}
+      </button>
+
+      <div className="mt-4 text-center">
+        <button type="button" onClick={() => setIsSignUp(!isSignUp)} className="text-xs text-muted-foreground hover:text-cyan transition-colors">
+          {isSignUp ? "Already have an account? Sign In" : "Need an account? Sign Up"}
+        </button>
+      </div>
+    </form>
   );
 }
