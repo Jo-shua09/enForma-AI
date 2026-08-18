@@ -1,12 +1,12 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Activity, Apple, Dumbbell, Flame, ScanLine, TrendingUp, Calendar } from "lucide-react";
 import { AppShell } from "@/components/app/app-shell";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
 import type { Metadata } from "next";
-import { redirect } from "next/navigation";
 
-const metadata: Metadata = {
+export const metadata: Metadata = {
   title: "Dashboard - EnForma AI",
   description: "Your daily macros, training readiness and habit streaks.",
   openGraph: {
@@ -32,31 +32,28 @@ async function getSupabase() {
 }
 
 async function getDashboardData() {
-  const { data: profile } = await supabase.from("profiles").select("daily_calories, protein_target, current_plan").eq("id", user.id).single();
-
-  if (!profile?.current_plan || profile.current_plan === "pending") {
-    redirect("/pricing");
-  }
-
+  // 1. Initialize Supabase and get the user FIRST
   const supabase = await getSupabase();
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { data: profile } = await supabase.from("profiles").select("daily_calories, protein_target").eq("id", user?.id).single();
+  // 2. If no user is logged in, boot them to auth
+  if (!user) {
+    redirect("/auth");
+  }
 
+  // 3. Fetch the profile ONCE, grabbing all required fields
+  const { data: profile } = await supabase.from("profiles").select("daily_calories, protein_target, current_plan").eq("id", user.id).single();
+
+  // 4. The Gatekeeper: Redirect if plan is pending
+  if (!profile?.current_plan || profile.current_plan === "pending") {
+    redirect("/pricing");
+  }
+
+  // 5. Safely assign variables now that we know the profile exists
   const targetCalories = profile?.daily_calories || 2350;
   const targetProtein = profile?.protein_target || 175;
-
-  if (!user) {
-    return {
-      totalCaloriesToday: 0,
-      totalProteinToday: 0,
-      targetCalories,
-      targetProtein,
-      activityFeed: [],
-    };
-  }
 
   const startOfDay = new Date();
   startOfDay.setHours(0, 0, 0, 0);
