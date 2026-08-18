@@ -9,6 +9,10 @@ export type UserProfile = {
   email: string;
   full_name?: string;
   current_plan?: string;
+  daily_calories?: number;
+  protein_target?: number;
+  training_days?: number;
+  water_goal?: number;
 };
 
 type AuthContextValue = {
@@ -66,16 +70,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         return;
       }
 
-      // CRITICAL FIX: Use maybeSingle() instead of single()
-      // This prevents the 406 Error and stops the app from logging you out
-      // if the database takes an extra millisecond to create your profile.
-      const { data: profile } = await supabase.from("profiles").select("full_name, current_plan").eq("id", session.user.id).maybeSingle();
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("full_name, current_plan, daily_calories, protein_target, training_days, water_goal")
+        .eq("id", session.user.id)
+        .maybeSingle();
 
       persistUser({
         id: session.user.id,
         email: session.user.email!,
         full_name: profile?.full_name || session.user.user_metadata?.full_name || "Athlete",
         current_plan: profile?.current_plan || "pending",
+        daily_calories: profile?.daily_calories,
+        protein_target: profile?.protein_target,
+        training_days: profile?.training_days,
+        water_goal: profile?.water_goal,
       });
     } catch (error) {
       console.error("Failed to refresh user:", error);

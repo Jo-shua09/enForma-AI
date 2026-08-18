@@ -28,7 +28,6 @@ export default function NutritionPage() {
   const [scanResult, setScanResult] = useState<Partial<Meal> | null>(null);
   const [recentMeals, setRecentMeals] = useState<Meal[]>([]);
 
-  // Fetch meals on load
   useEffect(() => {
     async function loadMeals() {
       const res = await getRecentMealsAction();
@@ -58,7 +57,7 @@ export default function NutritionPage() {
     const res = await analyzeMealAction(formData);
     setIsScanning(false);
 
-    if (res.success) {
+    if (res.success && res.data) {
       setScanResult(res.data);
       toast.success("Meal analyzed successfully!");
     } else {
@@ -110,7 +109,6 @@ export default function NutritionPage() {
   return (
     <AppShell title="Nutrition" subtitle="Scan your meals to track macros instantly.">
       <div className="grid gap-8 lg:grid-cols-12">
-        {/* LEFT COLUMN: The Scanner */}
         <div className="space-y-6 lg:col-span-7">
           <div className="overflow-hidden rounded-3xl border border-border bg-surface/40 p-6">
             <h2 className="font-display text-lg font-semibold tracking-tight text-foreground">AI Meal Scanner</h2>
@@ -163,10 +161,20 @@ export default function NutritionPage() {
             {scanResult && (
               <div className="mt-6 animate-in slide-in-from-bottom-4 fade-in duration-500">
                 <div className="grid grid-cols-4 gap-3">
-                  <MacroCard label="Calories" value={`${scanResult.calories}`} unit="kcal" icon={<Flame className="h-3 w-3 text-orange-500" />} />
-                  <MacroCard label="Protein" value={`${scanResult.protein}`} unit="g" icon={<div className="h-3 w-3 rounded-full bg-blue-500" />} />
-                  <MacroCard label="Carbs" value={`${scanResult.carbs}`} unit="g" icon={<div className="h-3 w-3 rounded-full bg-green-500" />} />
-                  <MacroCard label="Fats" value={`${scanResult.fats}`} unit="g" icon={<div className="h-3 w-3 rounded-full bg-yellow-500" />} />
+                  <MacroCard
+                    label="Calories"
+                    value={`${scanResult.calories ?? 0}`}
+                    unit="kcal"
+                    icon={<Flame className="h-3 w-3 text-orange-500" />}
+                  />
+                  <MacroCard
+                    label="Protein"
+                    value={`${scanResult.protein ?? 0}`}
+                    unit="g"
+                    icon={<div className="h-3 w-3 rounded-full bg-blue-500" />}
+                  />
+                  <MacroCard label="Carbs" value={`${scanResult.carbs ?? 0}`} unit="g" icon={<div className="h-3 w-3 rounded-full bg-green-500" />} />
+                  <MacroCard label="Fats" value={`${scanResult.fats ?? 0}`} unit="g" icon={<div className="h-3 w-3 rounded-full bg-yellow-500" />} />
                 </div>
 
                 <div className="mt-6 rounded-xl border border-border bg-background/50 p-4">
@@ -202,7 +210,6 @@ export default function NutritionPage() {
           </div>
         </div>
 
-        {/* RIGHT COLUMN: Meal History */}
         <div className="space-y-6 lg:col-span-5">
           <div className="rounded-3xl border border-border bg-surface/40 p-6">
             <div className="flex items-center justify-between mb-6">
@@ -229,7 +236,7 @@ export default function NutritionPage() {
                     <div className="flex-1 min-w-0 py-1">
                       <div className="flex items-center justify-between pr-6">
                         <p className="truncate text-sm font-medium text-foreground">
-                          {meal.food_items[0]} {meal.food_items.length > 1 && `+${meal.food_items.length - 1}`}
+                          {meal.food_items?.[0]} {meal.food_items?.length > 1 && `+${meal.food_items.length - 1}`}
                         </p>
                       </div>
 

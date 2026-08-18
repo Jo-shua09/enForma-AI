@@ -42,9 +42,9 @@ export async function getUnifiedAnalyticsAction() {
     // Fetch Form Analyses
     const { data: formLogs } = await supabase.from("form_analysis").select("*").eq("user_id", user.id).order("created_at", { ascending: false });
 
-    // Calculate aggregated metrics
+    // Calculate aggregated metrics safely with optional chaining
     const totalMealsLogged = meals?.length || 0;
-    const avgCalories = totalMealsLogged > 0 ? Math.round(meals.reduce((acc, m) => acc + (m.calories || 0), 0) / totalMealsLogged) : 0;
+    const avgCalories = totalMealsLogged > 0 && meals ? Math.round(meals.reduce((acc, m) => acc + (m.calories || 0), 0) / totalMealsLogged) : 0;
 
     const totalWorkoutsCompleted = workouts?.length || 0;
 
