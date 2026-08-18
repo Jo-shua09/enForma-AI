@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Activity, Apple, Dumbbell, Flame, ScanLine, TrendingUp } from "lucide-react";
+import { Activity, Apple, Dumbbell, Flame, ScanLine, TrendingUp, Calendar } from "lucide-react";
 import { AppShell } from "@/components/app/app-shell";
 import { createServerClient } from "@supabase/ssr";
 import { cookies } from "next/headers";
@@ -8,6 +8,14 @@ import type { Metadata } from "next";
 const metadata: Metadata = {
   title: "Dashboard - EnForma AI",
   description: "Your daily macros, training readiness and habit streaks.",
+  openGraph: {
+    title: "Dashboard - EnForma AI",
+    description: "Daily macros, readiness and streaks at a glance.",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+  },
 };
 
 async function getSupabase() {
@@ -27,17 +35,41 @@ async function getDashboardData() {
   const {
     data: { user },
   } = await supabase.auth.getUser();
-  if (!user) return { recentActivity: [], totalMeals: 0 };
 
-  // Fetch recent meals
-  const { data: meals } = await supabase
+  const { data: profile } = await supabase.from("profiles").select("daily_calories, protein_target").eq("id", user?.id).single();
+
+  const targetCalories = profile?.daily_calories || 2350;
+  const targetProtein = profile?.protein_target || 175;
+
+  if (!user) {
+    return {
+      totalCaloriesToday: 0,
+      totalProteinToday: 0,
+      targetCalories,
+      targetProtein,
+      activityFeed: [],
+    };
+  }
+
+  const startOfDay = new Date();
+  startOfDay.setHours(0, 0, 0, 0);
+
+  const { data: todayMeals } = await supabase
+    .from("meals")
+    .select("calories, protein, food_items, created_at")
+    .eq("user_id", user.id)
+    .gte("created_at", startOfDay.toISOString());
+
+  const totalCaloriesToday = todayMeals?.reduce((acc, m) => acc + (m.calories || 0), 0) || 0;
+  const totalProteinToday = todayMeals?.reduce((acc, m) => acc + (m.protein || 0), 0) || 0;
+
+  const { data: recentMeals } = await supabase
     .from("meals")
     .select("food_items, calories, protein, created_at")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false })
     .limit(3);
 
-  // Fetch recent workouts
   const { data: workouts } = await supabase
     .from("workouts")
     .select("title, target_muscle, created_at")
@@ -45,7 +77,6 @@ async function getDashboardData() {
     .order("created_at", { ascending: false })
     .limit(2);
 
-  // Fetch recent form analyses
   const { data: forms } = await supabase
     .from("form_analysis")
     .select("exercise_name, form_score, created_at")
@@ -53,10 +84,9 @@ async function getDashboardData() {
     .order("created_at", { ascending: false })
     .limit(2);
 
-  // Format into a unified activity feed
   const activityFeed: Array<{ title: string; subtitle: string; date: string }> = [];
 
-  meals?.forEach((m) => {
+  recentMeals?.forEach((m) => {
     activityFeed.push({
       title: `Scanned: ${m.food_items?.[0] || "Meal"}`,
       subtitle: `${m.calories} kcal · ${m.protein}g protein`,
@@ -80,7 +110,13 @@ async function getDashboardData() {
     });
   });
 
-  return { activityFeed };
+  return {
+    totalCaloriesToday,
+    totalProteinToday,
+    targetCalories,
+    targetProtein,
+    activityFeed,
+  };
 }
 
 const actions = [
@@ -90,17 +126,25 @@ const actions = [
 ] as const;
 
 export default async function DashboardPage() {
-  const { activityFeed } = await getDashboardData();
+  const { totalCaloriesToday, totalProteinToday, targetCalories, targetProtein, activityFeed } = await getDashboardData();
+
+  // Format current date cleanly (e.g. "Monday, Aug 17, 2026")
+  const currentDateFormatted = new Intl.DateTimeFormat("en-US", {
+    weekday: "long",
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+  }).format(new Date());
 
   const stats = [
-    { label: "Calories today", value: "2,150", sub: "Target: 2,350 kcal", icon: Flame },
-    { label: "Protein", value: "165g", sub: "Target: 175g", icon: Apple },
+    { label: "Calories today", value: totalCaloriesToday.toLocaleString(), sub: `of ${targetCalories.toLocaleString()} kcal`, icon: Flame },
+    { label: "Protein", value: `${totalProteinToday}g`, sub: `of ${targetProtein}g`, icon: Apple },
     { label: "Readiness", value: "88%", sub: "Optimal recovery", icon: Activity },
     { label: "Streak", value: "Active", sub: "Consistent logging", icon: TrendingUp },
   ];
 
   return (
-    <AppShell title="Today" subtitle="Your daily fitness command center.">
+    <AppShell title={currentDateFormatted} subtitle="Your live daily fitness command center.">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {stats.map((s) => (
           <div key={s.label} className="rounded-2xl border border-border bg-surface/50 p-5">
@@ -132,7 +176,9 @@ export default async function DashboardPage() {
         <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Recent ecosystem activity</p>
 
         {activityFeed.length === 0 ? (
-          <p className="mt-4 text-sm text-muted-foreground">No recent activity logged yet. Scan a meal or generate a workout to see it here!</p>
+          <p className="mt-4 text-sm text-muted-foreground">
+            No recent activity logged yet. Scan a meal, save a workout, or analyze your form to see records here!
+          </p>
         ) : (
           <ul className="mt-4 divide-y divide-border">
             {activityFeed.map((item, idx) => (
