@@ -42,7 +42,7 @@ export function Hero() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.16 }}
-          className="mt-7 max-w-4xl text-balance text-lg leading-relaxed text-muted-foreground"
+          className="mt-7 max-w-4xl text-balance text-sm sm:text-lg leading-relaxed text-muted-foreground"
         >
           EnForma AI scans your meals, writes your training plan, grades your lifting form through your camera, and keeps every habit on streak - one
           calm, intelligent coach instead of five noisy apps.
