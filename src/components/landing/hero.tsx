@@ -33,7 +33,7 @@ export function Hero() {
           initial={{ opacity: 0, y: 24 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.08, ease: [0.22, 1, 0.36, 1] }}
-          className="mt-8 max-w-5xl font-display text-5xl font-semibold leading-[0.98] tracking-tight text-foreground sm:text-7xl lg:text-8xl"
+          className="mt-8 max-w-5xl font-display text-3xl sm:text-5xl font-semibold leading-[0.98] tracking-tight text-foreground sm:text-7xl lg:text-8xl"
         >
           Train with <span className="text-gradient">precision.</span>
         </motion.h1>
