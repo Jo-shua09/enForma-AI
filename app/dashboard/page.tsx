@@ -1,37 +1,106 @@
 import Link from "next/link";
 import { Activity, Apple, Dumbbell, Flame, ScanLine, TrendingUp } from "lucide-react";
 import { AppShell } from "@/components/app/app-shell";
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
 import type { Metadata } from "next";
 
 const metadata: Metadata = {
   title: "Dashboard - EnForma AI",
   description: "Your daily macros, training readiness and habit streaks.",
-  openGraph: {
-    title: "Dashboard - EnForma AI",
-    description: "Daily macros, readiness and streaks at a glance.",
-    type: "website",
-  },
-  twitter: {
-    card: "summary_large_image",
-  },
 };
 
-const stats = [
-  { label: "Calories today", value: "1,840", sub: "of 2,350 kcal", icon: Flame },
-  { label: "Protein", value: "142g", sub: "of 175g", icon: Apple },
-  { label: "Readiness", value: "82%", sub: "HRV trending up", icon: Activity },
-  { label: "Streak", value: "23 days", sub: "personal best", icon: TrendingUp },
-];
+async function getSupabase() {
+  const cookieStore = await cookies();
+  return createServerClient(process.env.NEXT_PUBLIC_SUPABASE_URL!, process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!, {
+    cookies: {
+      getAll() {
+        return cookieStore.getAll();
+      },
+      setAll() {},
+    },
+  });
+}
+
+async function getDashboardData() {
+  const supabase = await getSupabase();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { recentActivity: [], totalMeals: 0 };
+
+  // Fetch recent meals
+  const { data: meals } = await supabase
+    .from("meals")
+    .select("food_items, calories, protein, created_at")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false })
+    .limit(3);
+
+  // Fetch recent workouts
+  const { data: workouts } = await supabase
+    .from("workouts")
+    .select("title, target_muscle, created_at")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false })
+    .limit(2);
+
+  // Fetch recent form analyses
+  const { data: forms } = await supabase
+    .from("form_analysis")
+    .select("exercise_name, form_score, created_at")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false })
+    .limit(2);
+
+  // Format into a unified activity feed
+  const activityFeed: Array<{ title: string; subtitle: string; date: string }> = [];
+
+  meals?.forEach((m) => {
+    activityFeed.push({
+      title: `Scanned: ${m.food_items?.[0] || "Meal"}`,
+      subtitle: `${m.calories} kcal · ${m.protein}g protein`,
+      date: new Date(m.created_at).toLocaleDateString(),
+    });
+  });
+
+  workouts?.forEach((w) => {
+    activityFeed.push({
+      title: `Workout: ${w.title}`,
+      subtitle: `Target: ${w.target_muscle}`,
+      date: new Date(w.created_at).toLocaleDateString(),
+    });
+  });
+
+  forms?.forEach((f) => {
+    activityFeed.push({
+      title: `Form Analysis: ${f.exercise_name}`,
+      subtitle: `Score: ${f.form_score}/100`,
+      date: new Date(f.created_at).toLocaleDateString(),
+    });
+  });
+
+  return { activityFeed };
+}
 
 const actions = [
   { to: "/nutrition", label: "Scan a meal", desc: "Photo → macros in 3 seconds", icon: Apple },
-  { to: "/workouts", label: "Today's session", desc: "Push A · 47 min", icon: Dumbbell },
+  { to: "/workouts", label: "Today's session", desc: "AI custom workout splits", icon: Dumbbell },
   { to: "/form-coach", label: "Check my form", desc: "Camera-based scoring", icon: ScanLine },
 ] as const;
 
-export default function DashboardPage() {
+export default async function DashboardPage() {
+  const { activityFeed } = await getDashboardData();
+
+  const stats = [
+    { label: "Calories today", value: "2,150", sub: "Target: 2,350 kcal", icon: Flame },
+    { label: "Protein", value: "165g", sub: "Target: 175g", icon: Apple },
+    { label: "Readiness", value: "88%", sub: "Optimal recovery", icon: Activity },
+    { label: "Streak", value: "Active", sub: "Consistent logging", icon: TrendingUp },
+  ];
+
   return (
-    <AppShell title="Today" subtitle="Wednesday · Week 4 of your hypertrophy block">
+    <AppShell title="Today" subtitle="Your daily fitness command center.">
       <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
         {stats.map((s) => (
           <div key={s.label} className="rounded-2xl border border-border bg-surface/50 p-5">
@@ -60,23 +129,23 @@ export default function DashboardPage() {
       </div>
 
       <div className="mt-6 rounded-2xl border border-border bg-surface/40 p-6">
-        <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Recent activity</p>
-        <ul className="mt-4 divide-y divide-border">
-          {[
-            ["Grilled salmon bowl scanned", "612 kcal · 44g protein", "1h ago"],
-            ["Back squat form graded", "Score 84/100 · depth improved", "Yesterday"],
-            ["Pull B session completed", "6 exercises · 52 min", "Yesterday"],
-            ["Water goal hit", "3.1L logged", "2 days ago"],
-          ].map(([t, d, w]) => (
-            <li key={t} className="flex items-center justify-between gap-4 py-3.5">
-              <div>
-                <p className="text-sm text-foreground">{t}</p>
-                <p className="text-xs text-muted-foreground">{d}</p>
-              </div>
-              <span className="whitespace-nowrap font-mono text-[11px] text-muted-foreground">{w}</span>
-            </li>
-          ))}
-        </ul>
+        <p className="font-mono text-[10px] uppercase tracking-[0.18em] text-muted-foreground">Recent ecosystem activity</p>
+
+        {activityFeed.length === 0 ? (
+          <p className="mt-4 text-sm text-muted-foreground">No recent activity logged yet. Scan a meal or generate a workout to see it here!</p>
+        ) : (
+          <ul className="mt-4 divide-y divide-border">
+            {activityFeed.map((item, idx) => (
+              <li key={idx} className="flex items-center justify-between gap-4 py-3.5">
+                <div>
+                  <p className="text-sm text-foreground">{item.title}</p>
+                  <p className="text-xs text-muted-foreground">{item.subtitle}</p>
+                </div>
+                <span className="whitespace-nowrap font-mono text-[11px] text-muted-foreground">{item.date}</span>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </AppShell>
   );
