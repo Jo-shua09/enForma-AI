@@ -1,24 +1,44 @@
 import { MetadataRoute } from "next";
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const siteUrl = "https://enforma-ai.vercel.app";
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const baseUrl = "https://enforma-ai.vercel.app";
 
-  // Publicly accessible marketing/info pages
-  const publicPages = ["/", "/features", "/pricing", "/about", "/faq", "/contact"].map((route) => ({
-    url: `${siteUrl}${route}`,
-    lastModified: new Date().toISOString(),
-    changeFrequency: "monthly",
-    priority: route === "/" ? 1.0 : 0.8,
-  }));
-
-  // Core application pages (for authenticated users)
-  // It's good practice to include these so search engines are aware of your app's full structure.
-  const appPages = ["/dashboard", "/workouts", "/nutrition", "/form-coach", "/progress", "/settings"].map((route) => ({
-    url: `${siteUrl}${route}`,
-    lastModified: new Date().toISOString(),
-    changeFrequency: "weekly",
-    priority: 0.7,
-  }));
-
-  return [...publicPages, ...appPages];
+  return [
+    {
+      url: baseUrl,
+      lastModified: new Date(),
+      changeFrequency: "daily" as const,
+      priority: 1.0,
+    },
+    {
+      url: `${baseUrl}/nutrition`,
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/workouts`,
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/form-coach`,
+      lastModified: new Date(),
+      changeFrequency: "weekly" as const,
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/progress`,
+      lastModified: new Date(),
+      changeFrequency: "daily" as const,
+      priority: 0.8,
+    },
+    {
+      url: `${baseUrl}/pricing`,
+      lastModified: new Date(),
+      changeFrequency: "monthly" as const,
+      priority: 0.5,
+    },
+  ];
 }
